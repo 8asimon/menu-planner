@@ -76,15 +76,24 @@ select,input[type=number],input[type=text],input[type=date]{border:.5px solid va
 .prep-qty-tag{font-family:monospace;font-size:.74rem;background:var(--grn-l);color:var(--grn-d);padding:2px 8px;border-radius:20px;margin-left:auto}
 .prep-dishes{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.38rem;margin-top:.45rem}
 .prep-dish{background:var(--surf2);border-radius:var(--r);padding:.4rem .65rem;font-size:.76rem;border-left:2px solid var(--grn)}
-/* Market */
 .mkt-store{background:var(--surf);border:.5px solid var(--brd2);border-radius:var(--rl);overflow:hidden;margin-bottom:.8rem}
-.mkt-store-hdr{padding:.6rem 1rem;background:var(--surf2);border-bottom:.5px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.mkt-store-hdr{padding:.6rem 1rem;background:var(--surf2);border-bottom:.5px solid var(--brd);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:background .12s}
+.mkt-store-hdr:hover{background:var(--surf3)}
 .mkt-store-name{font-size:.86rem;font-weight:500}.mkt-cnt{font-size:.73rem;color:var(--txt3);font-family:monospace}
+.mkt-store-chevron{font-size:.75rem;color:var(--txt3);transition:transform .2s;margin-left:.5rem}
+.mkt-store-body{display:block}
+.mkt-store-body.collapsed{display:none}
 .mkt-cat{padding:.55rem 1rem;border-bottom:.5px solid var(--brd)}.mkt-cat:last-child{border-bottom:none}
-.mkt-cat-name{font-size:.67rem;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:.38rem;font-family:monospace}
+.mkt-cat-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;margin-bottom:.38rem;gap:.5rem}
+.mkt-cat-hdr:hover .mkt-cat-name{color:var(--txt)}
+.mkt-cat-name{font-size:.67rem;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);font-family:monospace;transition:color .12s}
+.mkt-cat-chevron{font-size:.65rem;color:var(--txt3);transition:transform .2s;flex-shrink:0}
+.mkt-cat-body{display:block}
+.mkt-cat-body.collapsed{display:none}
 .mkt-items{display:flex;flex-wrap:wrap;gap:.32rem}
 .mkt-item{background:var(--surf2);border:.5px solid var(--brd);border-radius:20px;padding:.2rem .65rem;font-size:.76rem;display:flex;align-items:center;gap:.35rem;cursor:pointer;transition:all .15s;user-select:none}
 .mkt-item:hover{border-color:var(--grn)}.mkt-item.checked{background:var(--grn-l);border-color:var(--grn);text-decoration:line-through;color:var(--txt3)}
+.mkt-item-row1{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
 .mkt-qty{color:var(--grn-d);font-family:monospace;font-size:.7rem;font-weight:500}
 .fresh-badge{font-size:.58rem;padding:1px 6px;border-radius:8px;font-family:monospace;font-weight:500;white-space:nowrap}
 .fresh-ok{background:#E1F5EE;color:#0F6E56}.fresh-good{background:#EAF3DE;color:#3B6D11}
@@ -115,81 +124,160 @@ input[type=range]{accent-color:var(--grn)}
 .checkbox-dish input{width:15px;height:15px;cursor:pointer;accent-color:var(--grn)}
 
 /* ── RESPONSIVE ──────────────────────────────────────── */
-/* Mobile-first base adjustments */
 @media(max-width:640px){
   /* Header */
-  header{padding:.7rem 1rem}
-  header h1{font-size:.9rem}
-  header .btn-sm{padding:.28rem .55rem;font-size:.72rem}
+  header{padding:.65rem .9rem;gap:.4rem}
+  header h1{font-size:.88rem}
+  header p{font-size:.65rem}
+  header .btn-sm{padding:.3rem .6rem;font-size:.72rem}
 
-  /* Tabs — icon only on mobile */
-  .tabs{padding:0 .5rem}
-  .tab{padding:.6rem .55rem;font-size:.75rem}
-  .tab .tab-label{display:none}  /* hide text, keep emoji */
+  /* Tabs — emoji only, larger touch target */
+  .tabs{padding:0;justify-content:stretch}
+  .tab{flex:1;padding:.65rem .3rem;font-size:1rem;text-align:center}
+  .tab .tab-label{display:none}
 
   /* Panels */
-  .panel{padding:1rem .75rem}
+  .panel{padding:.9rem .7rem}
 
   /* Control bar stacks vertically */
-  .ctrl-bar{flex-direction:column;align-items:stretch;gap:.6rem}
-  .ctrl-bar .cg{width:100%}
-  .ctrl-bar select,.ctrl-bar input[type=date],.ctrl-bar input[type=number]{width:100%}
+  .ctrl-bar{flex-direction:column;align-items:stretch;gap:.55rem;padding:.8rem .9rem}
+  .ctrl-bar .cg,.ctrl-bar select,.ctrl-bar input[type=date],.ctrl-bar input[type=number],.ctrl-bar input[type=range]{width:100%}
 
-  /* Day rows: stack almuerzo/cena vertically instead of side-by-side */
-  .day-row{grid-template-columns:60px 1fr;grid-template-rows:auto auto}
-  .day-col-date{grid-row:1/3;border-right:.5px solid var(--brd)}
-  .meal-cell{border-right:none;border-bottom:.5px solid var(--brd)}
+  /* ── Calendar review ── */
+  .day-row{grid-template-columns:56px 1fr;grid-template-rows:auto auto}
+  .day-col-date{grid-row:1/3;border-right:.5px solid var(--brd);padding:.5rem .5rem}
+  .day-col-date .dow{font-size:.62rem}
+  .day-col-date .dnum{font-size:.85rem}
+  .meal-cell{border-right:none;border-bottom:.5px solid var(--brd);padding:.45rem .65rem}
   .meal-cell:last-child{border-bottom:none}
-  .day-col-date .dnum{font-size:.82rem}
+  .meal-cell-name{font-size:.8rem}
+  .meal-cell-actions{display:flex;gap:.4rem;margin-top:.3rem}
+  .act-btn{flex:1;padding:.32rem .4rem;font-size:.72rem;min-height:34px;text-align:center;justify-content:center}
+  .week-nav-btn{width:44px;height:44px;font-size:1.3rem}
+  .week-dot{width:11px;height:11px}
 
-  /* Meal cells larger touch targets */
-  .act-btn{padding:.28rem .65rem;font-size:.72rem;min-height:32px}
-  .meal-cell-name{font-size:.82rem}
+  /* ── Market ── */
+  /* Store header: bigger, easy tap */
+  .mkt-store-hdr{padding:.75rem .9rem}
+  .mkt-store-name{font-size:.9rem}
+  .mkt-store-chevron{font-size:.9rem}
+  /* Category header */
+  .mkt-cat{padding:.5rem .9rem}
+  .mkt-cat-hdr{margin-bottom:.45rem}
+  .mkt-cat-name{font-size:.7rem}
+  /* Items: 2-line card layout on mobile */
+  .mkt-items{flex-direction:column;gap:.35rem}
+  .mkt-item{
+    border-radius:var(--r);
+    padding:.5rem .8rem;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:.25rem;
+    min-height:52px;
+  }
+  .mkt-item-row1{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .mkt-item-name{font-size:.85rem;font-weight:500}
+  .mkt-qty{font-size:.78rem}
+  .fresh-badge{font-size:.65rem;padding:2px 7px;align-self:flex-start}
+  .mkt-item.checked{opacity:.6}
 
-  /* Market items full width */
-  .mkt-items{flex-direction:column;gap:.4rem}
-  .mkt-item{border-radius:var(--r);padding:.45rem .8rem;justify-content:space-between;font-size:.82rem}
-  .fresh-badge{font-size:.62rem}
-
-  /* Market store header */
-  .mkt-store-hdr{padding:.6rem .8rem}
-
-  /* Stat row: 2 cols on mobile */
-  .stat-row{grid-template-columns:1fr 1fr}
-
-  /* Modal full screen on mobile */
-  .modal-overlay{padding:.5rem}
-  .modal{max-height:95vh;border-radius:var(--r);padding:1rem}
-
-  /* Inventory table: hide unit column */
-  .inv-table .hide-mobile{display:none}
-  .inv-input{width:65px}
-
-  /* Suggestions wrap nicely */
-  .sugg-chip{font-size:.8rem;padding:.35rem .8rem}
-
-  /* Resumen calendar: 1-week-at-a-time on mobile → use list view */
+  /* ── Resumen list ── */
   #resumen-grid{display:none}
   #resumen-list{display:block}
+  .resumen-day-card{
+    background:var(--surf);
+    border:.5px solid var(--brd);
+    border-radius:var(--r);
+    margin-bottom:.5rem;
+    overflow:hidden;
+  }
+  .resumen-day-hdr{
+    padding:.45rem .8rem;
+    background:var(--surf2);
+    border-bottom:.5px solid var(--brd);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .resumen-day-name{font-size:.78rem;font-weight:500}
+  .resumen-day-date{font-size:.68rem;color:var(--txt3);font-family:monospace}
+  .resumen-day-body{padding:.5rem .8rem;display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+  .resumen-slot-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);margin-bottom:.15rem}
+  .resumen-slot-txt{font-size:.78rem;line-height:1.35;color:var(--txt)}
 
-  /* Prep dishes: single column */
+  /* ── Stat row ── */
+  .stat-row{grid-template-columns:1fr 1fr}
+
+  /* ── Modal: full-screen bottom sheet on mobile ── */
+  .modal-overlay{
+    padding:0;
+    align-items:flex-end;
+  }
+  .modal{
+    width:100%;
+    max-width:100%;
+    max-height:92vh;
+    border-radius:var(--rl) var(--rl) 0 0;
+    padding:1rem 1rem 1.25rem;
+    /* handle bar */
+    border-top:.5px solid var(--brd2);
+  }
+  .modal::before{
+    content:'';
+    display:block;
+    width:36px;height:4px;
+    background:var(--surf3);
+    border-radius:2px;
+    margin:0 auto .9rem;
+  }
+  .modal h2{font-size:.92rem;margin-bottom:.65rem}
+  /* Suggestions: scrollable horizontal row */
+  #sugg-container{
+    display:flex;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:.4rem;
+    padding-bottom:.4rem;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #sugg-container::-webkit-scrollbar{display:none}
+  .sugg-chip{
+    flex-shrink:0;
+    font-size:.8rem;
+    padding:.38rem .85rem;
+    max-width:240px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  /* Search results taller for thumb scrolling */
+  .search-results{max-height:220px}
+  .search-result-item{padding:.55rem .85rem;font-size:.84rem;min-height:44px;display:flex;align-items:center}
+  .search-input{font-size:.88rem;padding:.5rem .75rem}
+  .modal-footer{padding-top:.75rem;margin-top:.75rem}
+  .modal-footer .btn{min-height:40px;font-size:.82rem;flex:1}
+
+  /* Prep */
   .prep-dishes{grid-template-columns:1fr}
+  .prep-card{padding:.8rem 1rem}
 
-  /* Week nav larger */
-  .week-nav-btn{width:42px;height:42px;font-size:1.3rem}
-  .week-dot{width:10px;height:10px}
+  /* Inventory table: hide less-important cols */
+  .inv-table .hide-mobile{display:none}
+  .inv-input{width:65px}
 }
 
-/* Desktop: restore any mobile overrides */
+/* Desktop: restore */
 @media(min-width:641px){
   .tab .tab-label{display:inline}
   #resumen-grid{display:grid}
   #resumen-list{display:none}
   .inv-table .hide-mobile{display:table-cell}
   .mkt-items{flex-direction:row}
+  .mkt-item{flex-direction:row;align-items:center}
+  .mkt-item-row1{flex:1;flex-wrap:nowrap}
+  .mkt-item-name{font-size:.76rem}
 }
 
-/* Tablet middle ground */
+/* Tablet */
 @media(min-width:641px) and (max-width:900px){
   .day-row{grid-template-columns:65px 1fr 1fr}
   .panel{padding:1.25rem 1rem}
@@ -998,22 +1086,36 @@ function renderResumen(){
     <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--amb-l);border:.5px solid var(--amb);display:inline-block"></span>Festivo</span>
   </div>`;
 
-  // Mobile: list view (one day per row)
+  // Mobile: list view using card classes
   let listHtml=`<div id="resumen-list">`;
   Object.keys(S.menu).sort().forEach(ds=>{
     const data=S.menu[ds];
     const dw=dayOfWeek(ds);
-    const bg=data.holiday?'var(--amb-l)':data.wknd?'var(--grn-l)':'var(--surf)';
-    const border=data.holiday?'var(--amb)':data.wknd?'var(--grn)':'var(--brd)';
-    listHtml+=`<div style="background:${bg};border:.5px solid ${border};border-radius:var(--r);padding:.6rem .85rem;margin-bottom:.4rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-        <span style="font-family:monospace;font-size:.75rem;font-weight:500">${DAY_NAMES[dw]}, ${fmtFull(ds)}</span>
-        ${data.holiday?`<span class="badge b-holi">${hols.name(ds)}</span>`:data.wknd?`<span class="badge b-fs">FS</span>`:''}
+    const isHoli=data.holiday;
+    const isWknd=data.wknd;
+    const hdrBg=isHoli?'var(--amb-l)':isWknd?'var(--grn-l)':'var(--surf2)';
+    const hdrBorder=isHoli?'var(--amb)':isWknd?'var(--grn)':'var(--brd)';
+    const badge=isHoli
+      ?`<span class="badge b-holi">${hols.name(ds)}</span>`
+      :isWknd?`<span class="badge b-fs">FS</span>`:'';
+    listHtml+=`<div class="resumen-day-card">
+      <div class="resumen-day-hdr" style="background:${hdrBg};border-bottom-color:${hdrBorder}">
+        <span class="resumen-day-name">${DAY_NAMES[dw]}</span>
+        <div style="display:flex;align-items:center;gap:.4rem">
+          ${badge}
+          <span class="resumen-day-date">${fmtFull(ds)}</span>
+        </div>
       </div>
-      <div style="font-size:.7rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.03em">Almuerzo</div>
-      <div style="font-size:.82rem;margin-bottom:.3rem">${data.almuerzo}</div>
-      <div style="font-size:.7rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.03em">Cena</div>
-      <div style="font-size:.82rem">${data.cena}</div>
+      <div class="resumen-day-body">
+        <div>
+          <div class="resumen-slot-lbl">Almuerzo</div>
+          <div class="resumen-slot-txt">${data.almuerzo}</div>
+        </div>
+        <div>
+          <div class="resumen-slot-lbl">Cena</div>
+          <div class="resumen-slot-txt">${data.cena}</div>
+        </div>
+      </div>
     </div>`;
   });
   listHtml+=`</div>`;
@@ -1386,6 +1488,8 @@ function renderMarket(){
       <input type="date" value="${pd}" onchange="setPurchaseDate(this.value)">
     </div>
     <div style="display:flex;gap:.4rem">
+      <button class="btn btn-sm" onclick="expandAllMkt(true)">− Todo</button>
+      <button class="btn btn-sm" onclick="expandAllMkt(false)">+ Todo</button>
       <button class="btn btn-sm" onclick="clearMarket()">Limpiar ✓</button>
       <button class="btn btn-sm btn-primary" onclick="printMarket()">Imprimir</button>
     </div>
@@ -1393,35 +1497,66 @@ function renderMarket(){
   <div class="progress-bar"><div class="progress-fill" style="width:${allKeys.length?Math.round(checked/allKeys.length*100):0}%"></div></div>
   <p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${Math.round(checked/(allKeys.length||1)*100)}% completado · Frescura desde ${fmt(pd)}</p>`;
 
+  // Collapsed state persisted: S.mktCollapsed = {storeKey: bool, 'store|cat': bool}
+  if(!S.mktCollapsed) S.mktCollapsed={};
+
   stores.forEach(store=>{
     if(!byStore[store])return;
     const cats=byStore[store];
     const flat=Object.values(cats).flat();
     const storeChecked=flat.filter(i=>S.marketChecked[i.key]).length;
+    const storeOpen=S.mktCollapsed[store]!==true; // default open
+    const storeChevron=storeOpen?'▾':'▸';
 
-    html+=`<div class="mkt-store"><div class="mkt-store-hdr"><span class="mkt-store-name">${store}</span><span class="mkt-cnt">${storeChecked}/${flat.length}</span></div>`;
+    html+=`<div class="mkt-store">
+      <div class="mkt-store-hdr" onclick="toggleMktSection('${store}')">
+        <span style="display:flex;align-items:center;gap:.4rem">
+          <span class="mkt-store-chevron">${storeChevron}</span>
+          <span class="mkt-store-name">${store}</span>
+        </span>
+        <span class="mkt-cnt">${storeChecked}/${flat.length} ✓</span>
+      </div>
+      <div class="mkt-store-body${storeOpen?'':' collapsed'}">`;
 
     orderedCats(cats).forEach(cat=>{
       if(!cats[cat])return;
+      const catKey=`${store}|${cat}`;
+      const catOpen=S.mktCollapsed[catKey]!==true; // default open
+      const catChevron=catOpen?'▾':'▸';
+      const catChecked=cats[cat].filter(i=>S.marketChecked[i.key]).length;
+
       const items=cats[cat].sort((a,b)=>{
         const la=freshnessInfo(a.minDate||pd).lag;
         const lb=freshnessInfo(b.minDate||pd).lag;
         return lb-la||a.name.localeCompare(b.name);
       });
-      html+=`<div class="mkt-cat"><div class="mkt-cat-name">${cat}</div><div class="mkt-items">`;
+
+      html+=`<div class="mkt-cat">
+        <div class="mkt-cat-hdr" onclick="toggleMktSection('${catKey}')">
+          <span style="display:flex;align-items:center;gap:.35rem">
+            <span class="mkt-cat-chevron">${catChevron}</span>
+            <span class="mkt-cat-name">${cat}</span>
+          </span>
+          <span style="font-size:.65rem;color:var(--txt3);font-family:monospace">${catChecked}/${items.length}</span>
+        </div>
+        <div class="mkt-cat-body${catOpen?'':' collapsed'}">
+          <div class="mkt-items">`;
       items.forEach(item=>{
         const chk=S.marketChecked[item.key]?'checked':'';
         const qStr=fmtQty(item);
         const fi=freshnessInfo(item.minDate||pd);
         html+=`<div class="mkt-item ${chk}" onclick="toggleMarketItem('${item.key}')">
-          ${item.name}
-          <span class="mkt-qty">${qStr}</span>
+          <div class="mkt-item-row1">
+            <span class="mkt-item-name">${item.name}</span>
+            <span class="mkt-qty">${qStr}</span>
+          </div>
           <span class="fresh-badge ${fi.cls}">${fi.label}</span>
         </div>`;
       });
-      html+=`</div></div>`;
+      html+=`</div></div></div>`;
     });
-    html+=`</div>`;
+
+    html+=`</div></div>`;
   });
 
   html+=`<div style="font-size:.7rem;color:var(--txt3);display:flex;gap:.65rem;flex-wrap:wrap;margin-top:.65rem;align-items:center">
@@ -1461,6 +1596,29 @@ function toggleMarketItem(key){
   saveState();renderMarket();renderInventory();
 }
 function clearMarket(){S.marketChecked={};saveState();renderMarket();}
+
+function toggleMktSection(key){
+  if(!S.mktCollapsed)S.mktCollapsed={};
+  // true = collapsed, undefined/false = open
+  S.mktCollapsed[key]=!S.mktCollapsed[key];
+  saveState();renderMarket();
+}
+
+function expandAllMkt(collapse){
+  if(!S.mktCollapsed)S.mktCollapsed={};
+  const totals=computeMarketTotals();
+  const stores=new Set();
+  const cats=new Set();
+  Object.values(totals).forEach(item=>{
+    const s=item.tienda||'Otro';
+    const c=item.tipo||'Otro';
+    stores.add(s);
+    cats.add(`${s}|${c}`);
+  });
+  stores.forEach(s=>S.mktCollapsed[s]=collapse);
+  cats.forEach(k=>S.mktCollapsed[k]=collapse);
+  saveState();renderMarket();
+}
 
 function printMarket(){
   const totals=computeMarketTotals();

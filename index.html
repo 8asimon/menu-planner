@@ -286,8 +286,16 @@ input[type=range]{accent-color:var(--grn)}
 <body>
 
 <header>
-  <div><h1>🥗 Planificador de Menú</h1><p id="hdr-sub">Listo</p></div>
-  <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+  <div>
+    <h1>🥗 Planificador de Menú</h1>
+    <p id="hdr-sub">Listo</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+    <span id="sync-status" onclick="openSyncModal()" title="Configurar sincronización"></span>
+    <button class="btn btn-sm" onclick="openSyncModal()" title="Sincronizar con nube" style="font-size:.85rem;padding:.3rem .6rem">☁</button>
+    <button class="btn btn-sm" onclick="exportMenu()" title="Exportar menú como respaldo JSON" style="font-size:.82rem">↓ JSON</button>
+    <button class="btn btn-sm" onclick="exportMenuPDF()" title="Exportar menú como PDF" style="font-size:.82rem">↓ PDF</button>
+    <button class="btn btn-sm" onclick="importMenu()" title="Importar menú desde archivo" style="font-size:.82rem">↑ Importar</button>
     <button class="btn btn-warn btn-sm" onclick="confirmAll()">Confirmar todo</button>
     <button class="btn btn-primary btn-sm" onclick="generateAll()">Generar 4 semanas</button>
   </div>
@@ -639,16 +647,255 @@ let S={
   currentWeek:0
 };
 
-function saveState(){try{localStorage.setItem('menuapp_v6',JSON.stringify(S));}catch(e){}}
+// ═══════════════════════════════════════════════════════════════
+// GIST SYNC — guarda/carga estado en GitHub Gist
+// ═══════════════════════════════════════════════════════════════
+const GIST_FILENAME = 'menu_planner_state.json';
+const LS_KEY = 'menuapp_v6';
+const LS_GIST_KEY = 'menuapp_gist_config'; // {token, gistId}
+
+let _syncStatus = 'idle'; // idle | saving | loading | error | ok
+let _syncTimeout = null;
+
+function getGistConfig(){ try{return JSON.parse(localStorage.getItem(LS_GIST_KEY)||'null');}catch(e){return null;} }
+function setGistConfig(cfg){ localStorage.setItem(LS_GIST_KEY, JSON.stringify(cfg)); }
+
+function setSyncStatus(status, msg=''){
+  _syncStatus = status;
+  const el = document.getElementById('sync-status');
+  if(!el) return;
+  const map = {
+    idle:    ['',''],
+    saving:  ['⟳ Guardando...','color:var(--txt3)'],
+    loading: ['⟳ Cargando...','color:var(--txt3)'],
+    ok:      ['✓ Sincronizado','color:var(--grn)'],
+    error:   ['⚠ '+msg,'color:var(--amb)'],
+    noconf:  ['☁ Sin configurar','color:var(--txt3)']
+  };
+  const [text, style] = map[status]||['',''];
+  el.textContent = text;
+  el.setAttribute('style', `font-size:.68rem;font-family:monospace;cursor:pointer;${style}`);
+}
+
+// Save to localStorage immediately, then debounce Gist save
+function saveState(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+  scheduleSyncSave();
+}
+
+function scheduleSyncSave(){
+  const cfg = getGistConfig();
+  if(!cfg?.token || !cfg?.gistId){ setSyncStatus('noconf'); return; }
+  setSyncStatus('saving');
+  clearTimeout(_syncTimeout);
+  _syncTimeout = setTimeout(()=>syncSaveToGist(cfg), 1500); // debounce 1.5s
+}
+
+async function syncSaveToGist(cfg){
+  try{
+    const payload = {
+      description: 'Menu Planner State',
+      files:{ [GIST_FILENAME]:{ content: JSON.stringify(S) } }
+    };
+    const res = await fetch(`https://api.github.com/gists/${cfg.gistId}`,{
+      method:'PATCH',
+      headers:{'Authorization':`token ${cfg.token}`,'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    setSyncStatus('ok');
+    // Auto-clear ok after 3s
+    setTimeout(()=>{ if(_syncStatus==='ok') setSyncStatus('idle'); },3000);
+  }catch(e){
+    setSyncStatus('error', 'Error al guardar');
+    console.error('Gist save error:', e);
+  }
+}
+
+async function syncLoadFromGist(cfg, silent=false){
+  if(!silent) setSyncStatus('loading');
+  try{
+    const res = await fetch(`https://api.github.com/gists/${cfg.gistId}`,{
+      headers:{'Authorization':`token ${cfg.token}`}
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const content = data.files?.[GIST_FILENAME]?.content;
+    if(!content) throw new Error('Archivo no encontrado en Gist');
+    const remote = JSON.parse(content);
+    Object.assign(S, remote);
+    // Re-merge base data
+    for(const cat of['almuerzo_semana','almuerzo_finde','cena_semana','cena_finde']){
+      S.platos[cat]=[...new Set([...PLATOS_BASE[cat],...(S.platos[cat]||[])])];
+      S.platosFit[cat]=[...new Set([...PLATOS_FIT[cat],...(S.platosFit[cat]||[])])];
+    }
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){}
+    setSyncStatus('ok');
+    setTimeout(()=>{ if(_syncStatus==='ok') setSyncStatus('idle'); },3000);
+    renderAll();
+  }catch(e){
+    setSyncStatus('error', 'Error al cargar');
+    console.error('Gist load error:', e);
+  }
+}
+
 function loadState(){
-  try{const d=localStorage.getItem('menuapp_v6');if(d){const p=JSON.parse(d);Object.assign(S,p);}}catch(e){}
-  S.recetas=Object.assign({},S.recetas); // custom only; base merged at use time
+  try{const d=localStorage.getItem(LS_KEY);if(d){const p=JSON.parse(d);Object.assign(S,p);}}catch(e){}
+  S.recetas=Object.assign({},S.recetas);
   for(const cat of['almuerzo_semana','almuerzo_finde','cena_semana','cena_finde']){
     S.platos[cat]=[...new Set([...PLATOS_BASE[cat],...(S.platos[cat]||[])])];
     S.platosFit[cat]=[...new Set([...PLATOS_FIT[cat],...(S.platosFit[cat]||[])])];
   }
   if(!S.startDate)S.startDate=todayStr();
   if(!S.purchaseDate)S.purchaseDate=S.startDate;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GIST CONFIG MODAL
+// ═══════════════════════════════════════════════════════════════
+function openSyncModal(){
+  const cfg = getGistConfig()||{};
+  document.getElementById('modal-box').innerHTML=`
+    <h2>☁ Sincronización entre dispositivos</h2>
+    <p style="font-size:.8rem;color:var(--txt2);margin-bottom:1rem;line-height:1.5">
+      Usa un GitHub Gist privado para sincronizar tu menú entre el computador y el móvil.
+      Solo necesitas configurarlo una vez.
+    </p>
+
+    <details style="margin-bottom:1rem">
+      <summary style="cursor:pointer;font-size:.8rem;color:var(--grn-d);font-weight:500">Cómo obtener el token y Gist ID ▾</summary>
+      <ol style="font-size:.78rem;color:var(--txt2);line-height:1.8;margin-top:.6rem;padding-left:1.2rem">
+        <li>Ve a <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong></li>
+        <li>Clic en <strong>Generate new token (classic)</strong></li>
+        <li>Nombre: <em>menu-planner</em>, activa solo el permiso <strong>gist</strong></li>
+        <li>Copia el token generado y pégalo abajo</li>
+        <li>Ve a <strong>gist.github.com</strong>, crea un nuevo Gist privado con cualquier contenido</li>
+        <li>Copia el ID del Gist (los caracteres al final de la URL) y pégalo abajo</li>
+      </ol>
+    </details>
+
+    <div class="cg" style="margin-bottom:.75rem">
+      <label>GitHub Token</label>
+      <input type="password" id="gist-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+        value="${cfg.token||''}" style="width:100%;font-family:monospace;font-size:.82rem">
+    </div>
+    <div class="cg" style="margin-bottom:.75rem">
+      <label>Gist ID</label>
+      <input type="text" id="gist-id" placeholder="abc123def456..."
+        value="${cfg.gistId||''}" style="width:100%;font-family:monospace;font-size:.82rem">
+    </div>
+
+    <div id="gist-test-result" style="font-size:.78rem;margin-bottom:.5rem"></div>
+
+    <div class="modal-footer" style="flex-wrap:wrap;gap:.5rem">
+      <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-sm" onclick="testGistConfig()">Probar conexión</button>
+      ${cfg.token&&cfg.gistId?`<button class="btn btn-sm btn-warn" onclick="syncLoadNow()">⟳ Cargar desde nube</button>`:''}
+      <button class="btn btn-sm btn-primary" onclick="saveGistConfig()">Guardar configuración</button>
+    </div>`;
+  document.getElementById('modal-overlay').style.display='flex';
+}
+
+async function testGistConfig(){
+  const token = document.getElementById('gist-token').value.trim();
+  const gistId = document.getElementById('gist-id').value.trim();
+  const el = document.getElementById('gist-test-result');
+  if(!token||!gistId){ el.textContent='⚠ Completa ambos campos'; el.style.color='var(--amb)'; return; }
+  el.textContent='Probando...'; el.style.color='var(--txt3)';
+  try{
+    const res = await fetch(`https://api.github.com/gists/${gistId}`,{
+      headers:{'Authorization':`token ${token}`}
+    });
+    if(res.ok){ el.textContent='✓ Conexión exitosa'; el.style.color='var(--grn)'; }
+    else{ el.textContent=`⚠ Error ${res.status} — verifica el token y el Gist ID`; el.style.color='var(--amb)'; }
+  }catch(e){ el.textContent='⚠ Error de red'; el.style.color='var(--amb)'; }
+}
+
+function saveGistConfig(){
+  const token = document.getElementById('gist-token').value.trim();
+  const gistId = document.getElementById('gist-id').value.trim();
+  if(!token||!gistId){ alert('Completa ambos campos'); return; }
+  setGistConfig({token, gistId});
+  closeModal();
+  setSyncStatus('idle');
+  // Immediately push current state
+  syncSaveToGist({token, gistId});
+}
+
+async function syncLoadNow(){
+  const cfg = getGistConfig();
+  if(!cfg?.token||!cfg?.gistId){ openSyncModal(); return; }
+  closeModal();
+  await syncLoadFromGist(cfg);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT / IMPORT JSON
+// ═══════════════════════════════════════════════════════════════
+function exportMenu(){
+  // Export only the user-generated data, not the base recipes/platos
+  const exportData = {
+    version: 'v6',
+    exportedAt: new Date().toISOString(),
+    menu: S.menu,
+    startDate: S.startDate,
+    purchaseDate: S.purchaseDate,
+    marketChecked: S.marketChecked,
+    inventory: S.inventory,
+    fitPct: S.fitPct,
+    recetas: S.recetas,
+    mktCollapsed: S.mktCollapsed,
+    currentWeek: S.currentWeek
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = S.startDate ? S.startDate.slice(0,7) : new Date().toISOString().slice(0,7);
+  a.href = url;
+  a.download = `menu_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importMenu(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const data = JSON.parse(ev.target.result);
+        if(!data.menu) throw new Error('Archivo inválido');
+        if(!confirm(`¿Importar menú del ${data.startDate||'?'}? Esto reemplaza el estado actual.`)) return;
+        Object.assign(S, {
+          menu: data.menu||{},
+          startDate: data.startDate||todayStr(),
+          purchaseDate: data.purchaseDate||data.startDate||todayStr(),
+          marketChecked: data.marketChecked||{},
+          inventory: data.inventory||{},
+          fitPct: data.fitPct||0,
+          recetas: data.recetas||{},
+          mktCollapsed: data.mktCollapsed||{},
+          currentWeek: data.currentWeek||0
+        });
+        // Re-merge base
+        for(const cat of['almuerzo_semana','almuerzo_finde','cena_semana','cena_finde']){
+          S.platos[cat]=[...new Set([...PLATOS_BASE[cat],...(S.platos[cat]||[])])];
+          S.platosFit[cat]=[...new Set([...PLATOS_FIT[cat],...(S.platosFit[cat]||[])])];
+        }
+        saveState();
+        renderAll();
+        alert('✓ Menú importado correctamente');
+      }catch(err){
+        alert('Error al importar: '+err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }
 
 function getReceta(name){return S.recetas[name]||RECETAS_BASE[name]||null;}
@@ -1030,7 +1277,7 @@ function renderResumen(){
       <p style="font-size:.8rem;color:var(--txt2)">${fmt(S.startDate)} → ${fmt(addDays(S.startDate,27))} · ${conf}/${total} confirmados</p>
     </div>
     <div style="display:flex;gap:.4rem">
-      <button class="btn btn-sm" onclick="printResumen()">Imprimir</button>
+      <button class="btn btn-sm" onclick="exportMenuPDF()">📄 Exportar PDF</button>
       <button class="btn btn-sm btn-primary" onclick="switchTab('mercado')">Ver mercado →</button>
     </div>
   </div>`;
@@ -1129,41 +1376,208 @@ function switchTab(name){
   document.getElementById(`panel-${name}`).classList.add('active');
 }
 
-function printResumen(){
-  const grid=document.getElementById('resumen-grid');
-  if(!grid)return;
-  const w=window.open('','_blank');
-  const days=Object.keys(S.menu).sort();
-  let body=`<h2>Menú — ${fmt(S.startDate)} al ${fmt(addDays(S.startDate,27))}</h2>
-  <table style="width:100%;border-collapse:collapse;font-family:Georgia,serif;font-size:11px">
-  <tr>${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(d=>`<th style="text-align:center;padding:4px;border:1px solid #ddd;background:#f5f5f5">${d}</th>`).join('')}</tr>`;
-  const startDow=dayOfWeek(S.startDate);
-  const rows=Math.ceil((startDow+28)/7);
+function exportMenuPDF(){
+  if(!Object.keys(S.menu).length){ alert('Genera el menú primero.'); return; }
+
+  const hols = getHols();
+  const startDow = dayOfWeek(S.startDate);
+  const rows = Math.ceil((startDow+28)/7);
+  const DAY_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const DAY_FULL  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  // ── Page 1: Calendar grid ──────────────────────────────────────
+  let calGrid = `<table class="cal">
+    <tr>${DAY_SHORT.map(d=>`<th>${d}</th>`).join('')}</tr>`;
   for(let r=0;r<rows;r++){
-    body+=`<tr>`;
+    calGrid+=`<tr>`;
     for(let c=0;c<7;c++){
       const idx=r*7+c-startDow;
-      if(idx<0||idx>=28){body+=`<td style="border:1px solid #eee;background:#fafafa"></td>`;continue;}
+      if(idx<0||idx>=28){ calGrid+=`<td class="empty"></td>`; continue; }
       const ds=addDays(S.startDate,idx);
       const d=S.menu[ds];
-      const bg=d?.wknd?'#f0fdf4':d?.holiday?'#fffbeb':'#fff';
-      body+=`<td style="border:1px solid #ddd;padding:5px;vertical-align:top;background:${bg}">
-        <div style="font-size:10px;color:#888;margin-bottom:3px;font-family:monospace">${fmt(ds)}</div>
-        ${d?`<div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.04em">Almuerzo</div>
-        <div style="font-size:10px;margin-bottom:3px">${d.almuerzo}</div>
-        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.04em">Cena</div>
-        <div style="font-size:10px">${d.cena}</div>`:''}
+      const dw=dayOfWeek(ds);
+      let cls='';
+      if(d?.holiday) cls='holi';
+      else if(d?.wknd) cls='wknd';
+      calGrid+=`<td class="${cls}">
+        <div class="dnum">${parseInt(ds.split('-')[2])}</div>
+        ${d?`<div class="lbl">Almuerzo</div><div class="dish">${d.almuerzo}</div>
+             <div class="lbl" style="margin-top:3px">Cena</div><div class="dish">${d.cena}</div>`:''}
       </td>`;
     }
-    body+=`</tr>`;
+    calGrid+=`</tr>`;
   }
-  body+=`</table>`;
-  w.document.write(`<!DOCTYPE html><html><head><title>Menú</title></head><body style="padding:1.5rem">${body}</body></html>`);
-  w.document.close();setTimeout(()=>w.print(),400);
+  calGrid+=`</table>`;
+
+  // ── Page 2: Weekly list ────────────────────────────────────────
+  let weekList='';
+  for(let w=0;w<4;w++){
+    const firstDs=addDays(S.startDate,w*7);
+    const lastDs=addDays(S.startDate,w*7+6);
+    weekList+=`<div class="week-block">
+      <div class="week-title">Semana ${w+1} &nbsp;·&nbsp; ${fmt(firstDs)} – ${fmt(lastDs)}</div>
+      <table class="week-tbl">
+        <tr><th>Día</th><th>Almuerzo</th><th>Cena</th></tr>`;
+    for(let d=0;d<7;d++){
+      const ds=addDays(S.startDate,w*7+d);
+      const data=S.menu[ds];
+      if(!data) continue;
+      const dw=dayOfWeek(ds);
+      let rowcls='';
+      if(data.holiday) rowcls='holi-row';
+      else if(data.wknd) rowcls='wknd-row';
+      const badge=data.holiday?`<span class="tag-holi">${hols.name(ds)}</span>`:data.wknd?`<span class="tag-wknd">FS</span>`:'';
+      weekList+=`<tr class="${rowcls}">
+        <td class="day-cell"><strong>${DAY_FULL[dw].slice(0,3)}</strong><br><span class="date-sm">${fmt(ds)}</span>${badge}</td>
+        <td>${data.almuerzo}</td>
+        <td>${data.cena}</td>
+      </tr>`;
+    }
+    weekList+=`</table></div>`;
+  }
+
+  // ── Page 3: Market list ────────────────────────────────────────
+  const totals = computeMarketTotals();
+  const byStore={};
+  Object.entries(totals).forEach(([key,item])=>{
+    const s=item.tienda||'Otro';
+    const c=item.tipo||'Otro';
+    if(!byStore[s])byStore[s]={};
+    if(!byStore[s][c])byStore[s][c]=[];
+    byStore[s][c].push({key,...item});
+  });
+  const STORE_PREF=['Plaza','Éxito','Santa Reyes','D1','Artesa'];
+  const CAT_PREF=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Despensa'];
+  const stores=[...STORE_PREF,...Object.keys(byStore).filter(s=>!STORE_PREF.includes(s))];
+  function ordCats(cats){ return[...CAT_PREF,...Object.keys(cats).filter(c=>!CAT_PREF.includes(c))]; }
+
+  let mktHtml='';
+  stores.forEach(store=>{
+    if(!byStore[store])return;
+    const cats=byStore[store];
+    mktHtml+=`<div class="store-block"><div class="store-title">${store}</div>`;
+    ordCats(cats).forEach(cat=>{
+      if(!cats[cat])return;
+      const items=cats[cat].sort((a,b)=>a.name.localeCompare(b.name));
+      mktHtml+=`<div class="cat-name">${cat}</div><div class="items-row">`;
+      items.forEach(item=>{
+        const chk=S.marketChecked[item.key]?'checked':'';
+        mktHtml+=`<div class="mkt-item ${chk}">☐ ${item.name} <span class="qty">${fmtQty(item)}</span></div>`;
+      });
+      mktHtml+=`</div>`;
+    });
+    mktHtml+=`</div>`;
+  });
+
+  // ── Compose full HTML ──────────────────────────────────────────
+  const title=`Menú ${fmt(S.startDate)} – ${fmt(addDays(S.startDate,27))}`;
+  const pd=S.purchaseDate||S.startDate||todayStr();
+
+  const html=`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;font-size:10px;color:#1a1a18;background:#fff}
+h1{font-size:15px;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:9px;color:#888;margin-bottom:16px;font-family:monospace}
+
+/* ── Calendar ── */
+.cal{width:100%;border-collapse:collapse;table-layout:fixed}
+.cal th{background:#f0efe9;text-align:center;padding:4px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;border:1px solid #ddd}
+.cal td{border:1px solid #ddd;vertical-align:top;padding:4px;height:72px;background:#fff}
+.cal td.empty{background:#fafaf8}
+.cal td.wknd{background:#f0fdf4}
+.cal td.holi{background:#fffbeb}
+.dnum{font-family:monospace;font-size:9px;color:#999;margin-bottom:3px}
+.lbl{font-size:7px;text-transform:uppercase;letter-spacing:.04em;color:#aaa;margin-top:1px}
+.dish{font-size:8.5px;color:#1a1a18;line-height:1.3}
+
+/* ── Week list ── */
+.week-block{margin-bottom:14px;break-inside:avoid}
+.week-title{font-size:10px;font-weight:600;background:#f0efe9;padding:4px 8px;border-left:3px solid #1D9E75;margin-bottom:4px}
+.week-tbl{width:100%;border-collapse:collapse;font-size:9.5px}
+.week-tbl th{background:#f0efe9;padding:4px 6px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #ddd}
+.week-tbl td{padding:5px 6px;border-bottom:1px solid #eee;vertical-align:top}
+.week-tbl tr.wknd-row td{background:#f0fdf4}
+.week-tbl tr.holi-row td{background:#fffbeb}
+.day-cell{width:70px;white-space:nowrap}
+.date-sm{font-family:monospace;color:#999;font-size:8px}
+.tag-wknd{display:inline-block;font-size:7px;background:#E1F5EE;color:#0F6E56;padding:0 3px;border-radius:3px;margin-left:3px;vertical-align:middle}
+.tag-holi{display:inline-block;font-size:7px;background:#FAEEDA;color:#854F0B;padding:0 3px;border-radius:3px;margin-left:3px;vertical-align:middle}
+
+/* ── Market ── */
+.store-block{margin-bottom:12px;break-inside:avoid}
+.store-title{font-size:11px;font-weight:600;border-bottom:1.5px solid #1D9E75;padding-bottom:3px;margin-bottom:6px;color:#0F6E56}
+.cat-name{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#999;margin:5px 0 3px;font-family:monospace}
+.items-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px}
+.mkt-item{background:#f5f5f3;border:0.5px solid #ddd;border-radius:12px;padding:2px 8px;font-size:9px;display:inline-flex;align-items:center;gap:4px}
+.mkt-item.checked{text-decoration:line-through;opacity:.5}
+.qty{color:#0F6E56;font-family:monospace;font-weight:600;font-size:8.5px}
+
+/* ── Page breaks ── */
+.page{padding:1.5cm;min-height:27cm}
+.page-break{page-break-after:always;break-after:page}
+.section-title{font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee}
+
+@page{size:A4;margin:1.2cm 1.5cm}
+@media print{
+  .page{padding:0;min-height:auto}
+  .page-break{page-break-after:always}
 }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: Calendar -->
+<div class="page page-break">
+  <h1>${title}</h1>
+  <div class="subtitle">Generado el ${new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'})}</div>
+  <div class="section-title">Calendario del menú</div>
+  ${calGrid}
+  <div style="margin-top:8px;display:flex;gap:12px;font-size:8px;color:#888">
+    <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#f0fdf4;border:1px solid #86efac;display:inline-block;border-radius:2px"></span>Fin de semana</span>
+    <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#fffbeb;border:1px solid #fcd34d;display:inline-block;border-radius:2px"></span>Festivo</span>
+  </div>
+</div>
+
+<!-- PAGE 2: Weekly list -->
+<div class="page page-break">
+  <h1>${title}</h1>
+  <div class="subtitle">Vista semanal detallada</div>
+  <div class="section-title">Menú semana a semana</div>
+  ${weekList}
+</div>
+
+<!-- PAGE 3: Market list -->
+<div class="page">
+  <h1>Lista de mercado</h1>
+  <div class="subtitle">Fecha de compra: ${fmtFull(pd)}</div>
+  <div class="section-title">Por tienda y categoría</div>
+  ${mktHtml}
+</div>
+
+</body>
+</html>`;
+
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  // Give browser time to render fonts before print dialog
+  setTimeout(()=>{
+    w.focus();
+    w.print();
+  }, 600);
+}
+
+function printResumen(){ exportMenuPDF(); }
 // ═══════════════════════════════════════════════════════════════
 // Pool global para el swap activo (evita problemas de escapado en onclick)
 let _swapPool=[];
+let _swapSearchPool=[];
 let _swapDs='';
 let _swapSlot='';
 let _swapExcluded=new Set();
@@ -1173,10 +1587,25 @@ function openSwap(ds,slot){
   _swapDs=ds; _swapSlot=slot;
   const isAlm=slot==='alm';
   const current=isAlm?data.almuerzo:data.cena;
-  const pool=isAlm
-    ?(data.wknd?[...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde]:[...S.platos.almuerzo_semana,...S.platosFit.almuerzo_semana])
-    :((data.wknd||data.fri)?[...S.platos.cena_finde,...S.platosFit.cena_finde]:[...S.platos.cena_semana,...S.platosFit.cena_semana]);
-  _swapPool=[...new Set(pool)];
+
+  // Suggestions pool: respects day type (semana vs finde)
+  const dayPool=isAlm
+    ?(data.wknd
+      ?[...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde]
+      :[...S.platos.almuerzo_semana,...S.platosFit.almuerzo_semana])
+    :((data.wknd||data.fri)
+      ?[...S.platos.cena_finde,...S.platosFit.cena_finde]
+      :[...S.platos.cena_semana,...S.platosFit.cena_semana]);
+  _swapPool=[...new Set(dayPool)];
+
+  // Search pool: ALL dishes of this meal category (semana + finde + fit)
+  const searchPool=isAlm
+    ?[...S.platos.almuerzo_semana,...S.platos.almuerzo_finde,
+      ...S.platosFit.almuerzo_semana,...S.platosFit.almuerzo_finde]
+    :[...S.platos.cena_semana,...S.platos.cena_finde,
+      ...S.platosFit.cena_semana,...S.platosFit.cena_finde];
+  _swapSearchPool=[...new Set(searchPool)];
+
   _swapExcluded=new Set([current]);
 
   document.getElementById('modal-box').innerHTML=`
@@ -1187,8 +1616,8 @@ function openSwap(ds,slot){
       <button class="btn btn-sm" onclick="refreshSuggestions()" style="font-size:.7rem">↺ Otras opciones</button>
     </div>
     <div id="sugg-container" style="margin-bottom:.9rem"></div>
-    <div class="section-ttl">Buscar en todos los platos</div>
-    <input class="search-input" type="text" id="swap-search" placeholder="Escribe para buscar..." oninput="filterSwap(this.value)">
+    <div class="section-ttl">Buscar en todos los platos <span style="font-size:.65rem;color:var(--txt3);text-transform:none;letter-spacing:0;font-family:inherit">(${_swapSearchPool.length} disponibles)</span></div>
+    <input class="search-input" type="text" id="swap-search" placeholder="ej: pollo, cerdo, pasta..." oninput="filterSwap(this.value)">
     <div id="swap-results" class="search-results" style="display:none"></div>
     <div class="modal-footer">
       <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
@@ -1257,15 +1686,19 @@ function pickSuggestion(idx){
 function filterSwap(query){
   const res=document.getElementById('swap-results');
   if(!query.trim()){res.style.display='none';return;}
-  const q=query.toLowerCase();
-  const matches=_swapPool.filter(d=>d.toLowerCase().includes(q)).slice(0,15);
+  const q=query.toLowerCase().trim();
+  // Search across ALL dishes of this meal type
+  const matches=_swapSearchPool.filter(d=>d.toLowerCase().includes(q)).slice(0,20);
   if(!matches.length){
     res.innerHTML=`<div style="padding:.5rem .75rem;font-size:.78rem;color:var(--txt3)">Sin resultados para "${query}"</div>`;
     res.style.display='block';return;
   }
-  res.innerHTML=matches.map((d,i)=>
-    `<div class="search-result-item" data-dish="${encodeURIComponent(d)}" onclick="pickResult(this)">${d}</div>`
-  ).join('');
+  res.innerHTML=matches.map(d=>{
+    // Mark if this dish is outside the day's normal pool (semana vs finde)
+    const inDayPool=_swapPool.includes(d);
+    const note=inDayPool?'':' <span style="font-size:.62rem;color:var(--amb);font-family:monospace">otro tipo</span>';
+    return`<div class="search-result-item" data-dish="${encodeURIComponent(d)}" onclick="pickResult(this)">${d}${note}</div>`;
+  }).join('');
   res.style.display='block';
 }
 
@@ -1908,6 +2341,17 @@ function showTab(btn){
 // ═══════════════════════════════════════════════════════════════
 loadState();
 renderAll();
+
+// Auto-load from Gist on startup (silent if no config)
+(async()=>{
+  const cfg = getGistConfig();
+  if(cfg?.token && cfg?.gistId){
+    setSyncStatus('loading');
+    await syncLoadFromGist(cfg, false);
+  } else {
+    setSyncStatus('noconf');
+  }
+})();
 </script>
 </body>
 </html>

@@ -24,23 +24,43 @@ header p{font-size:.72rem;color:var(--txt3);font-family:monospace}
 .cg{display:flex;flex-direction:column;gap:.3rem}
 .cg label{font-size:.7rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;font-family:monospace}
 select,input[type=number],input[type=text],input[type=date]{border:.5px solid var(--brd2);border-radius:var(--r);padding:.38rem .65rem;font-size:.84rem;background:var(--bg);color:var(--txt);font-family:inherit}
-/* Calendar — rolling window, not fixed grid */
-.week-row{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;margin-bottom:.35rem}
-.cal-hdr-row{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;margin-bottom:.3rem}
-.cal-hdr{text-align:center;font-size:.67rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;padding:.3rem 0;font-family:monospace}
-.day{background:var(--surf);border:.5px solid var(--brd);border-radius:var(--r);padding:.42rem .48rem;min-height:100px;font-size:.74rem;position:relative}
-.day.empty{background:var(--surf2);opacity:.3;min-height:100px}
-.day.wknd{background:var(--grn-l);border-color:var(--grn)}
-.day.holi{background:var(--amb-l);border-color:var(--amb)}
-.day.confirmed{border-color:var(--grn);border-width:1.5px}
-.day.today{outline:2px solid var(--blu);outline-offset:-2px}
-.day.past{opacity:.58}
-.day-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem}
-.day-num{font-size:.7rem;color:var(--txt3);font-family:monospace}
-.day-edit{width:17px;height:17px;border:none;border-radius:4px;cursor:pointer;font-size:.62rem;background:var(--surf2);color:var(--txt2);display:inline-flex;align-items:center;justify-content:center;padding:0}
-.day-edit:hover{background:var(--grn-l);color:var(--grn)}
-.meal-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);margin-top:.22rem}
-.meal-txt{font-size:.7rem;color:var(--txt);line-height:1.3;margin-top:.04rem}
+/* Calendar — week-by-week cards */
+.week-card{background:var(--surf);border:.5px solid var(--brd);border-radius:var(--rl);margin-bottom:1rem;overflow:hidden}
+.week-header{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--surf2);border-bottom:.5px solid var(--brd)}
+.week-title{font-size:.82rem;font-weight:500;font-family:monospace}
+.week-progress{font-size:.72rem;color:var(--txt3);font-family:monospace}
+.day-row{display:grid;grid-template-columns:80px 1fr 1fr;gap:0;border-bottom:.5px solid var(--brd)}
+.day-row:last-child{border-bottom:none}
+.day-row.confirmed-row{background:var(--grn-l)}
+.day-row.wknd-row{background:color-mix(in srgb,var(--grn-l) 40%,var(--surf))}
+.day-row.holi-row{background:var(--amb-l)}
+.day-col-date{padding:.6rem .8rem;border-right:.5px solid var(--brd);display:flex;flex-direction:column;gap:.2rem;justify-content:center}
+.day-col-date .dow{font-size:.68rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;font-family:monospace}
+.day-col-date .dnum{font-size:.9rem;font-weight:500;font-family:monospace}
+.day-col-date .dbadges{display:flex;flex-wrap:wrap;gap:2px;margin-top:.15rem}
+.meal-cell{padding:.5rem .75rem;border-right:.5px solid var(--brd);display:flex;flex-direction:column;gap:.2rem}
+.meal-cell:last-child{border-right:none}
+.meal-cell-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);display:flex;align-items:center;gap:.3rem}
+.meal-cell-name{font-size:.78rem;color:var(--txt);line-height:1.35}
+.meal-cell-actions{display:flex;gap:.3rem;margin-top:.2rem}
+.act-btn{padding:.18rem .5rem;border-radius:6px;border:.5px solid var(--brd2);font-size:.68rem;cursor:pointer;font-family:inherit;background:var(--surf);color:var(--txt2);transition:all .12s}
+.act-btn:hover{border-color:var(--grn);color:var(--grn);background:var(--grn-l)}
+.act-btn.confirmed{background:var(--grn-l);color:var(--grn-d);border-color:var(--grn)}
+.week-nav{display:flex;align-items:center;gap:.75rem;justify-content:center;margin-bottom:1rem}
+.week-nav-btn{width:36px;height:36px;border-radius:50%;border:.5px solid var(--brd2);background:var(--surf);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.week-nav-btn:hover{background:var(--surf2);border-color:var(--brd2)}
+.week-nav-btn:disabled{opacity:.3;cursor:default}
+.week-dots{display:flex;gap:.4rem}
+.week-dot{width:8px;height:8px;border-radius:50%;background:var(--surf3);cursor:pointer;transition:all .15s}
+.week-dot.active{background:var(--grn)}
+/* Suggestion chips */
+.sugg-chip{display:inline-flex;padding:.28rem .7rem;border-radius:20px;border:.5px solid var(--brd2);font-size:.76rem;cursor:pointer;background:var(--surf2);color:var(--txt);transition:all .12s;margin:.2rem .2rem 0 0}
+.sugg-chip:hover{border-color:var(--grn);background:var(--grn-l);color:var(--grn-d)}
+.search-input{width:100%;border:.5px solid var(--brd2);border-radius:var(--r);padding:.4rem .7rem;font-size:.84rem;background:var(--bg);color:var(--txt);font-family:inherit;margin-top:.5rem}
+.search-results{max-height:200px;overflow-y:auto;margin-top:.35rem;border:.5px solid var(--brd);border-radius:var(--r)}
+.search-result-item{padding:.4rem .75rem;font-size:.8rem;cursor:pointer;border-bottom:.5px solid var(--brd);transition:background .1s}
+.search-result-item:last-child{border-bottom:none}
+.search-result-item:hover{background:var(--grn-l);color:var(--grn-d)}
 .badge{font-size:.56rem;padding:1px 4px;border-radius:9px;font-family:monospace;white-space:nowrap}
 .b-conf{background:var(--grn-l);color:var(--grn-d)}.b-holi{background:var(--amb-l);color:var(--amb)}
 .b-fs{background:var(--grn-l);color:var(--grn-d)}.b-fit{background:var(--blu-l);color:var(--blu)}
@@ -93,7 +113,87 @@ input[type=range]{accent-color:var(--grn)}
 .checkbox-dish{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:var(--r);cursor:pointer;font-size:.82rem}
 .checkbox-dish:hover{background:var(--surf2)}
 .checkbox-dish input{width:15px;height:15px;cursor:pointer;accent-color:var(--grn)}
-</style>
+
+/* ── RESPONSIVE ──────────────────────────────────────── */
+/* Mobile-first base adjustments */
+@media(max-width:640px){
+  /* Header */
+  header{padding:.7rem 1rem}
+  header h1{font-size:.9rem}
+  header .btn-sm{padding:.28rem .55rem;font-size:.72rem}
+
+  /* Tabs — icon only on mobile */
+  .tabs{padding:0 .5rem}
+  .tab{padding:.6rem .55rem;font-size:.75rem}
+  .tab .tab-label{display:none}  /* hide text, keep emoji */
+
+  /* Panels */
+  .panel{padding:1rem .75rem}
+
+  /* Control bar stacks vertically */
+  .ctrl-bar{flex-direction:column;align-items:stretch;gap:.6rem}
+  .ctrl-bar .cg{width:100%}
+  .ctrl-bar select,.ctrl-bar input[type=date],.ctrl-bar input[type=number]{width:100%}
+
+  /* Day rows: stack almuerzo/cena vertically instead of side-by-side */
+  .day-row{grid-template-columns:60px 1fr;grid-template-rows:auto auto}
+  .day-col-date{grid-row:1/3;border-right:.5px solid var(--brd)}
+  .meal-cell{border-right:none;border-bottom:.5px solid var(--brd)}
+  .meal-cell:last-child{border-bottom:none}
+  .day-col-date .dnum{font-size:.82rem}
+
+  /* Meal cells larger touch targets */
+  .act-btn{padding:.28rem .65rem;font-size:.72rem;min-height:32px}
+  .meal-cell-name{font-size:.82rem}
+
+  /* Market items full width */
+  .mkt-items{flex-direction:column;gap:.4rem}
+  .mkt-item{border-radius:var(--r);padding:.45rem .8rem;justify-content:space-between;font-size:.82rem}
+  .fresh-badge{font-size:.62rem}
+
+  /* Market store header */
+  .mkt-store-hdr{padding:.6rem .8rem}
+
+  /* Stat row: 2 cols on mobile */
+  .stat-row{grid-template-columns:1fr 1fr}
+
+  /* Modal full screen on mobile */
+  .modal-overlay{padding:.5rem}
+  .modal{max-height:95vh;border-radius:var(--r);padding:1rem}
+
+  /* Inventory table: hide unit column */
+  .inv-table .hide-mobile{display:none}
+  .inv-input{width:65px}
+
+  /* Suggestions wrap nicely */
+  .sugg-chip{font-size:.8rem;padding:.35rem .8rem}
+
+  /* Resumen calendar: 1-week-at-a-time on mobile → use list view */
+  #resumen-grid{display:none}
+  #resumen-list{display:block}
+
+  /* Prep dishes: single column */
+  .prep-dishes{grid-template-columns:1fr}
+
+  /* Week nav larger */
+  .week-nav-btn{width:42px;height:42px;font-size:1.3rem}
+  .week-dot{width:10px;height:10px}
+}
+
+/* Desktop: restore any mobile overrides */
+@media(min-width:641px){
+  .tab .tab-label{display:inline}
+  #resumen-grid{display:grid}
+  #resumen-list{display:none}
+  .inv-table .hide-mobile{display:table-cell}
+  .mkt-items{flex-direction:row}
+}
+
+/* Tablet middle ground */
+@media(min-width:641px) and (max-width:900px){
+  .day-row{grid-template-columns:65px 1fr 1fr}
+  .panel{padding:1.25rem 1rem}
+}</style>
 </head>
 <body>
 
@@ -106,14 +206,16 @@ input[type=range]{accent-color:var(--grn)}
 </header>
 
 <div class="tabs">
-  <button class="tab active" data-tab="calendario" onclick="showTab(this)">📅 Calendario</button>
-  <button class="tab" data-tab="meal-prep" onclick="showTab(this)">🧊 Meal Prep</button>
-  <button class="tab" data-tab="mercado" onclick="showTab(this)">🛒 Mercado</button>
-  <button class="tab" data-tab="inventario" onclick="showTab(this)">📦 Inventario</button>
-  <button class="tab" data-tab="recetas" onclick="showTab(this)">📖 Mis Recetas</button>
+  <button class="tab active" data-tab="calendario" onclick="showTab(this)">📅 <span class="tab-label">Revisar</span></button>
+  <button class="tab" data-tab="resumen" onclick="showTab(this)">🗓 <span class="tab-label">Menú</span></button>
+  <button class="tab" data-tab="meal-prep" onclick="showTab(this)">🧊 <span class="tab-label">Meal Prep</span></button>
+  <button class="tab" data-tab="mercado" onclick="showTab(this)">🛒 <span class="tab-label">Mercado</span></button>
+  <button class="tab" data-tab="inventario" onclick="showTab(this)">📦 <span class="tab-label">Inventario</span></button>
+  <button class="tab" data-tab="recetas" onclick="showTab(this)">📖 <span class="tab-label">Recetas</span></button>
 </div>
 
 <div id="panel-calendario" class="panel active"></div>
+<div id="panel-resumen" class="panel"></div>
 <div id="panel-meal-prep" class="panel"></div>
 <div id="panel-mercado" class="panel"></div>
 <div id="panel-inventario" class="panel"></div>
@@ -149,7 +251,7 @@ const PROTEIN_TIPOS=new Set(['Pollo','Carne Cerdo','Carne Res','Pescado']);
 function isProteinCategory(tipo){return PROTEIN_TIPOS.has(tipo)}
 
 function getProteinFromDish(dish){
-  const map=[['Pescado','Pescado'],['Carne de cerdo asada','Carne de cerdo asada'],['Muslos de pollo','Muslos de pollo'],
+  const map=[['Pescado','Pescado'],['Carne de cerdo asada','Carne de cerdo asada'],
     ['Pechuga de pollo','Pechuga de pollo'],['Lomo de Cerdo','Lomo de Cerdo'],['Lomo de cerdo','Lomo de cerdo'],
     ['Punta de anca','Punta de anca'],['Roastbeef','Roastbeef'],['Costillas BBQ','Costillas BBQ'],
     ['Pollo al Curry','Pechuga de pollo'],['Strogonoff','Lomo de Res'],['Albóndigas','Carne Molida'],
@@ -167,14 +269,82 @@ function getProteinFromDish(dish){
 // PLATOS BASE
 // ═══════════════════════════════════════════════════════════════
 const PLATOS_BASE={
-  almuerzo_semana:['Pescado y Habichuelines','Pescado y Ensalda Zanahoria','Pescado y Ensalada Tomates','Pescado y Papa Criolla','Pescado y Papas al ajo','Pescado y Tomates al horno','Carne de cerdo asada y Habichuelines','Carne de cerdo asada y Ensalda Zanahoria','Carne de cerdo asada y Papa Criolla','Carne de cerdo asada y Papas al ajo','Carne de cerdo asada y Tomates al horno','Muslos de pollo y Habichuelines','Muslos de pollo y Ensalda Zanahoria','Muslos de pollo y Papa Criolla','Muslos de pollo y Papas al ajo','Pechuga de pollo y Habichuelines','Pechuga de pollo y Ensalda Zanahoria','Pechuga de pollo y Papa Criolla','Pechuga de pollo y Papas al ajo','Pechuga de pollo y Arroz y ensalada','Albóndigas y Papa Criolla','Albóndigas y Papas al ajo','Arroz Atollado','Molde de atún Papas al ajo','Molde de atún Papa Criolla','Pollo Jardinera y Papa Criolla','Pollo apanado Papa Criolla','Contramuslo Pollo al horno Papa Criolla','Contramuslo pollo al limón Papa Criolla','Parmontier','Lomo de Cerdo con Lentejas y Arroz'],
-  almuerzo_finde:['Lomo de cerdo y Gratin Duphinois','Lomo de cerdo y Papa criolla','Lomo de cerdo y Papas al Ajo','Lomo de cerdo y Arroz y Arveja','Lomo de cerdo y Repollo morado','Lomo de cerdo y Tomates al horno','Punta de Anca y Gratin Dauphinois','Punta de anca de cerdo y Papas al Ajo','Punta de anca de cerdo y Papa criolla','Roastbeef y Gratin Duphinois','Roastbeef y Papas al Ajo','Roastbeef y Papa criolla','Roastbeef y Papas fritas','Costillas BBQ y Papas al Ajo','Costillas BBQ y Papa criolla','Costillas BBQ y Papas fritas','Pollo al Curry y Pan Naam','Pollo al Curry y Arroz y Arveja','Strogonoff y Papa Rosty','Hamburguesa y Papas fritas','Pastas Carbonara','Pastas Boloñesa','Pastas Jamón Serrano','Pastas Lasaña','Asado de tira y Risotto','Bistec a Caballo Papa criolla','Bistec a Caballo Papas al Ajo','Sopa Mejicana','Musaka de plátano'],
-  cena_semana:['Sopa de Brócoli','Tortilla Española','Ensalada de Pollo','Ensalada de atún con Arepa','Tostadas de Atún','Crema de tomate','Pizza Tortilla jamón serrano','Tortilla de Huevo con Jamón y Arepa','ArePizza de jamón y queso','Sopa de Ahuyama','Tacos de cerdo y lechuga','Tortilla de Cerdo con huevo frito','Poke de Atún','Ensalada de atún','Ceviche de pescado','Ensalada Griega','Sopa de Espinaca'],
-  cena_finde:['Lomo de cerdo y Arepa','Roastbeef y Arepa','Costillas BBQ y Arepa','Pollo al Curry y Arepa','Strogonoff y Arepa','Asado de Tira y Risotto Alcachofa','Asado de Tira y Risotto Espárragos','Gyozas','Sanduches de Jamón y Queso','ArePizza de jamón y queso','Poke de Atún','Tacos de cerdo y lechuga','Ensalada de Pollo','Crema de tomate','Tortilla de Cerdo con huevo frito']
+  almuerzo_semana:[
+    'Pescado y Habichuelines','Pescado y Ensalda Zanahoria','Pescado y Ensalada Tomates','Pescado y Papa Criolla','Pescado y Papas al ajo','Pescado y Papas tajadas','Pescado y Tomates al horno','Pescado y Yuca frita',
+    'Carne de cerdo asada y Habichuelines','Carne de cerdo asada y Ensalda Zanahoria','Carne de cerdo asada y Ensalada Tomates','Carne de cerdo asada y Papa Criolla','Carne de cerdo asada y Papas al ajo','Carne de cerdo asada y Papas tajadas','Carne de cerdo asada y Arroz y ensalada','Carne de cerdo asada y Tomates al horno','Carne de cerdo asada y Yuca frita',
+
+    'Pechuga de pollo y Habichuelines','Pechuga de pollo y Ensalda Zanahoria','Pechuga de pollo y Ensalada Tomates','Pechuga de pollo y Papa Criolla','Pechuga de pollo y Papas al ajo','Pechuga de pollo y Papas tajadas','Pechuga de pollo y Arroz y ensalada','Pechuga de pollo y Papa Chorreada','Pechuga de pollo y Tomates al horno','Pechuga de pollo y Yuca frita',
+    'Albóndigas y Papa Criolla','Albóndigas y Papas al ajo','Albóndigas y Papas tajadas','Albóndigas y Arroz y ensalada',
+    'Arroz Atollado',
+    'Molde de atún Papa Criolla','Molde de atún Papas al ajo','Molde de atún Papas tajadas','Molde de atún Yuca frita',
+    'Pollo Jardinera y Papa Criolla','Pollo Jardinera y Papas al ajo','Pollo Jardinera y Papas tajadas','Pollo Jardinera y Arroz y ensalada','Pollo Jardinera y Yuca frita',
+    'Pollo apanado Habichuelines','Pollo apanado Ensalda Zanahoria','Pollo apanado Ensalada Tomates','Pollo apanado Papa Criolla','Pollo apanado Papas al ajo','Pollo apanado Papas tajadas','Pollo apanado Tomates al horno','Pollo apanado Yuca frita',
+    'Contramuslo Pollo al horno Habichuelines','Contramuslo Pollo al horno Ensalda Zanahoria','Contramuslo Pollo al horno Ensalada Tomates','Contramuslo Pollo al horno Papa Criolla','Contramuslo Pollo al horno Papas al ajo','Contramuslo Pollo al horno Papas tajadas','Contramuslo Pollo al horno Yuca frita',
+    'Contramuslo pollo al limón Habichuelines','Contramuslo pollo al limón Ensalda Zanahoria','Contramuslo pollo al limón Papa Criolla','Contramuslo pollo al limón Papas al ajo','Contramuslo pollo al limón Papas tajadas','Contramuslo pollo al limón Tomates al horno','Contramuslo pollo al limón Yuca frita',
+    'Parmontier','Lomo de Cerdo con Lentejas y Arroz'
+  ],
+  almuerzo_finde:[
+    'Lomo de cerdo y Parmesana Berenjena y papa','Lomo de cerdo y Gratin Duphinois','Lomo de cerdo y Papas al Ajo','Lomo de cerdo y Papa criolla','Lomo de cerdo y Ensalada pepino y tomate','Lomo de cerdo y Papa Salada y Guacamole','Lomo de cerdo y Arroz y Arveja','Lomo de cerdo y Repollo morado','Lomo de cerdo y Tomates al horno','Lomo de cerdo y Yuca frita',
+    'Punta de Anca y Gratin Dauphinois','Punta de anca de cerdo y Papas al Ajo','Punta de anca de cerdo y Papa criolla','Punta de anca de cerdo y Ensalada pepino y tomate','Punta de anca de cerdo y Papa Frita','Punta de Anca y Tomates al Horno','Punta de Anca y Yuca frita',
+    'Roastbeef y Parmesana Berenjena','Roastbeef y Gratin Duphinois','Roastbeef y Papas al Ajo','Roastbeef y Papa criolla','Roastbeef y Papas fritas','Roastbeef y Molde Papa y Coliflor','Roastbeef y Yuca frita',
+    'Costillas BBQ y Papas al Ajo','Costillas BBQ y Papa criolla','Costillas BBQ y Papas fritas','Costillas BBQ y Yuca frita',
+    'Pollo al Curry y Pan Naam','Pollo al Curry y Arroz y Arveja',
+    'Strogonoff y Papa Rosty','Strogonoff y Papa criolla','Strogonoff y Arroz y Arveja',
+    'Hamburguesa y Papas fritas',
+    'Pastas Carbonara','Pastas Boloñesa','Pastas Atún','Pastas Jamón Serrano','Pastas Del huerto','Pastas Jamón y crema','Pastas Lasaña','Pastas Amatricciana','Pastas Pollo y Berenjena',
+    'Asado de tira y Risotto','Bistec a Caballo Papa criolla','Bistec a Caballo Papas al Ajo','Bistec a Caballo Ensalada pepino y tomate','Bistec a Caballo Papas fritas','Bistec a Caballo Molde Papa y Coliflor','Bistec a Caballo Yuca frita',
+    'Sopa Mejicana','Musaka de plátano'
+  ],
+  cena_semana:[
+    'Sopa de Brócoli','Tortilla Española','Ensalada de Pollo','Ensalada de atún con Arepa','Tostadas de Atún','Crema de tomate','Pizza Tortilla jamón serrano','Tortilla de Huevo con Jamón y Arepa','ArePizza de jamón y queso','Sopa de Ahuyama','Tacos de cerdo y lechuga','Tortilla de Cerdo con huevo frito','Poke de Atún','Ensalada de atún','Ceviche de pescado','Ensalada Griega','Sopa de Espinaca'
+  ],
+  cena_finde:[
+    // Cenas con sobras del almuerzo — se asignan dinámicamente en generateAll
+    // Pool base sin sobras:
+    'Gyozas','Sanduches de Jamón y Queso','Sanduches de Costilla','Sanduches de Roastbeef','Sanduches de Asado de Tira','ArePizza de jamón y queso','Poke de Atún','Tacos de cerdo y lechuga','Ensalada de Pollo','Crema de tomate','Tortilla de Cerdo con huevo frito',
+    'Asado de Tira y Risotto Alcachofa','Asado de Tira y Risotto Espárragos','Asado de Tira y Risotto Tomate'
+  ]
 };
 
+// Mapa de sobras: almuerzo_finde → cena_finde con esa proteína
+const SOBRAS_CENA={
+  'Lomo de cerdo':      'Lomo de cerdo y Arepa',
+  'Punta de anca':      'Punta de anca de cerdo y Arepa',
+  'Roastbeef':          'Roastbeef y Arepa',
+  'Costillas BBQ':      'Costillas BBQ y Arepa',
+  'Pollo al Curry':     'Pollo al Curry y Arepa',
+  'Strogonoff':         'Strogonoff y Arepa',
+  'Bistec a Caballo':   'Bistec a Caballo con Arepa',
+  'Asado de tira':      'Sanduches de Asado de Tira',
+  'Hamburguesa':        null  // no genera cena de sobras
+};
+
+function getCenaFromSobras(almuerzo){
+  for(const[prot,cena]of Object.entries(SOBRAS_CENA)){
+    if(almuerzo.startsWith(prot)&&cena)return cena;
+  }
+  return null;
+}
+
+// Protein families for smart rotation limits
+const PROTEIN_FAMILY={
+  'Pescado':    ['Pescado'],
+  'Pollo':      ['Pechuga de pollo','Contramuslo','Pollo Jardinera','Pollo apanado','Pollo al Curry','Arroz Atollado','Sopa Mejicana'],
+  'CerdoAsado': ['Carne de cerdo asada'],
+  'LomoCerdo':  ['Lomo de cerdo','Costillas BBQ','Punta de anca'],
+  'Res':        ['Roastbeef','Bistec a Caballo','Strogonoff','Asado de tira','Albóndigas','Hamburguesa','Parmontier'],
+  'Atun':       ['Molde de atún','Poke de Atún']
+};
+
+function getDishFamily(dish){
+  for(const[fam,prefixes]of Object.entries(PROTEIN_FAMILY)){
+    if(prefixes.some(p=>dish.startsWith(p)))return fam;
+  }
+  return 'Otro';
+}
+
 const PLATOS_FIT={
-  almuerzo_semana:['Pechuga de pollo y Habichuelines','Pechuga de pollo y Ensalda Zanahoria','Pescado y Habichuelines','Pescado y Ensalda Zanahoria','Pescado y Ensalada Tomates','Carne de cerdo asada y Habichuelines','Muslos de pollo y Habichuelines','Muslos de pollo y Ensalda Zanahoria','Contramuslo pollo al limón Papa Criolla','Pollo Jardinera y Papa Criolla'],
+  almuerzo_semana:['Pechuga de pollo y Habichuelines','Pechuga de pollo y Ensalda Zanahoria','Pescado y Habichuelines','Pescado y Ensalda Zanahoria','Pescado y Ensalada Tomates','Carne de cerdo asada y Habichuelines','Contramuslo pollo al limón Papa Criolla','Pollo Jardinera y Papa Criolla'],
   almuerzo_finde:['Lomo de cerdo y Ensalada pepino y tomate','Roastbeef y Papa criolla','Pollo al Curry y Arroz y Arveja','Bistec a Caballo Papa criolla','Sopa Mejicana'],
   cena_semana:['Sopa de Brócoli','Ensalada de Pollo','Tostadas de Atún','Ensalada de atún','Crema de tomate','Sopa de Ahuyama','Poke de Atún','Ceviche de pescado','Ensalada Griega','Sopa de Espinaca'],
   cena_finde:['Poke de Atún','Ensalada de Pollo','Crema de tomate','Tacos de cerdo y lechuga']
@@ -196,10 +366,6 @@ const RECETAS_BASE={
   'Carne de cerdo asada y Papa Criolla':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Papa criolla',400,'g','Verdura','Plaza']],
   'Carne de cerdo asada y Papas al ajo':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
   'Carne de cerdo asada y Tomates al horno':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Tomate',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
-  'Muslos de pollo y Habichuelines':[['Muslos de Pollo',600,'g','Pollo','Plaza'],['Habichuelines',200,'g','Verdura','Plaza'],['Ajo',10,'g','Verdura','Plaza']],
-  'Muslos de pollo y Ensalda Zanahoria':[['Muslos de Pollo',600,'g','Pollo','Plaza'],['Zanahoria',2,'unid','Verdura','Plaza'],['Cebolla larga',2,'unid','Verdura','Plaza']],
-  'Muslos de pollo y Papa Criolla':[['Muslos de Pollo',600,'g','Pollo','Plaza'],['Papa criolla',400,'g','Verdura','Plaza']],
-  'Muslos de pollo y Papas al ajo':[['Muslos de Pollo',600,'g','Pollo','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
   'Pechuga de pollo y Habichuelines':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Habichuelines',200,'g','Verdura','Plaza'],['Ajo',10,'g','Verdura','Plaza']],
   'Pechuga de pollo y Ensalda Zanahoria':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Zanahoria',2,'unid','Verdura','Plaza'],['Cebolla Larga',2,'unid','Verdura','Plaza']],
   'Pechuga de pollo y Papa Criolla':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Papa criolla',400,'g','Verdura','Plaza']],
@@ -271,7 +437,90 @@ const RECETAS_BASE={
   'Asado de Tira y Risotto Alcachofa':[['Asado de tira',700,'g','Carne Res','Plaza'],['Arroz Arborio',1,'taza','Despensa','Éxito'],['Alcachofa',4,'unid','Verdura','Plaza'],['Queso Grana Padano',100,'g','Lácteos','Éxito']],
   'Asado de Tira y Risotto Espárragos':[['Asado de tira',700,'g','Carne Res','Plaza'],['Arroz Arborio',1,'taza','Despensa','Éxito'],['Esparragos',1,'manojo','Verdura','Plaza'],['Queso Grana Padano',100,'g','Lácteos','Éxito']],
   'Gyozas':[['Carne Cerdo Molida',400,'g','Carne Cerdo','Plaza'],['Jengibre',1,'trozo','Verdura','Plaza'],['Cebolla Larga',3,'unid','Verdura','Plaza'],['Harina',1,'paquete','Despensa','Éxito'],['Salsa Soja',1,'botella','Despensa','Éxito']],
-  'Sanduches de Jamón y Queso':[['Jamón Cocido',200,'g','Carnes frías','Éxito'],['Pan Tajado',0.5,'paquete','Despensa','Éxito'],['Queso Tajado',3,'tajadas','Lácteos','Éxito']]
+  'Sanduches de Jamón y Queso':[['Jamón Cocido',200,'g','Carnes frías','Éxito'],['Pan Tajado',0.5,'paquete','Despensa','Éxito'],['Queso Tajado',3,'tajadas','Lácteos','Éxito']],
+  // ── Recetas faltantes generadas por similitud ──────────────────
+  // Albóndigas variantes
+  'Albóndigas y Papas tajadas':[['Carne Molida',250,'g','Carne Res','Plaza'],['Tomate',2,'unid','Verdura','Plaza'],['Cebolla cabezona',0.5,'unid','Verdura','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Albóndigas y Arroz y ensalada':[['Carne Molida',250,'g','Carne Res','Plaza'],['Tomate',2,'unid','Verdura','Plaza'],['Cebolla cabezona',0.5,'unid','Verdura','Plaza'],['Arroz',1,'taza','Despensa','Éxito'],['Cogollos',1,'unid','Verdura','Plaza']],
+  // Asado de tira variante
+  'Asado de Tira y Risotto Tomate':[['Asado de tira',700,'g','Carne Res','Plaza'],['Arroz Arborio',1,'taza','Despensa','Éxito'],['Tomate en Lata',2,'latas','Despensa','Éxito'],['Queso Grana Padano',100,'g','Lácteos','Éxito']],
+  // Bistec a Caballo variantes
+  'Bistec a Caballo Ensalada pepino y tomate':[['Carne res asar',400,'g','Carne Res','Plaza'],['Huevos',2,'unid','Huevos','Santa Reyes'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza'],['Pepino',1,'unid','Verdura','Plaza'],['Cilantro',1,'manojo','Verdura','Plaza']],
+  'Bistec a Caballo Molde Papa y Coliflor':[['Carne res asar',400,'g','Carne Res','Plaza'],['Huevos',2,'unid','Huevos','Santa Reyes'],['Papa Sabanera',4,'unid','Verdura','Plaza'],['Coliflor',1,'unid','Verdura','Plaza'],['Leche',0.5,'L','Lácteos','Éxito'],['Queso Parmesano',0.25,'bolsa','Lácteos','Éxito']],
+  'Bistec a Caballo Papas fritas':[['Carne res asar',400,'g','Carne Res','Plaza'],['Huevos',2,'unid','Huevos','Santa Reyes'],['Papa Frita',0.5,'paquete','Despensa','Éxito'],['Tomate',2,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  'Bistec a Caballo Yuca frita':[['Carne res asar',400,'g','Carne Res','Plaza'],['Huevos',2,'unid','Huevos','Santa Reyes'],['Yuca',0.5,'kg','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  // Carne cerdo variantes
+  'Carne de cerdo asada y Ensalada Tomates':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Tomate',3,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  'Carne de cerdo asada y Papas tajadas':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Carne de cerdo asada y Arroz y ensalada':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Arroz',1,'taza','Despensa','Éxito'],['Cogollos',1,'unid','Verdura','Plaza']],
+  'Carne de cerdo asada y Yuca frita':[['Carne de Cerdo Asada',400,'g','Carne Cerdo','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza']],
+  // Contramuslo al horno variantes
+  'Contramuslo Pollo al horno Habichuelines':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Habichuelines',200,'g','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  'Contramuslo Pollo al horno Ensalda Zanahoria':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Zanahoria',2,'unid','Verdura','Plaza'],['Cebolla Larga',2,'unid','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  'Contramuslo Pollo al horno Ensalada Tomates':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Tomate',4,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  'Contramuslo Pollo al horno Papas al ajo':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  'Contramuslo Pollo al horno Papas tajadas':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  'Contramuslo Pollo al horno Yuca frita':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  // Contramuslo al limón variantes
+  'Contramuslo pollo al limón Habichuelines':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Limón',2,'unid','Verdura','Plaza'],['Habichuelines',200,'g','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Contramuslo pollo al limón Ensalda Zanahoria':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Limón',2,'unid','Verdura','Plaza'],['Zanahoria',2,'unid','Verdura','Plaza'],['Cebolla Larga',2,'unid','Verdura','Plaza']],
+  'Contramuslo pollo al limón Papas al ajo':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Limón',2,'unid','Verdura','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Contramuslo pollo al limón Papas tajadas':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Limón',2,'unid','Verdura','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Contramuslo pollo al limón Tomates al horno':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Limón',2,'unid','Verdura','Plaza'],['Tomate',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Contramuslo pollo al limón Yuca frita':[['Contramuslo Pollo',700,'g','Pollo','Plaza'],['Limón',2,'unid','Verdura','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza']],
+  // Costillas BBQ variante
+  'Costillas BBQ y Yuca frita':[['Costillas Cerdo',500,'g','Carne Cerdo','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza'],['Tomate en Lata',1,'lata','Despensa','Éxito'],['Vino',0.5,'botella','Despensa','D1']],
+  // Lomo cerdo variantes
+  'Lomo de cerdo y Parmesana Berenjena y papa':[['Lomo de Cerdo',500,'g','Carne Cerdo','Plaza'],['Berenjena',2,'unid','Verdura','Plaza'],['Tomate',4,'unid','Verdura','Plaza'],['Queso doble Crema',0.5,'unid','Lácteos','Éxito'],['Albahaca',1,'manojo','Verdura','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Naranja',3,'unid','Verdura','Plaza']],
+  'Lomo de cerdo y Papa Salada y Guacamole':[['Lomo de Cerdo',400,'g','Carne Cerdo','Plaza'],['Papa Sabanera',4,'unid','Verdura','Plaza'],['Aguacate',1,'unid','Verdura','Plaza'],['Tomate',1,'unid','Verdura','Plaza'],['Limón',1,'unid','Verdura','Plaza'],['Cilantro',1,'manojo','Verdura','Plaza']],
+  'Lomo de cerdo y Yuca frita':[['Lomo de Cerdo',500,'g','Carne Cerdo','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza'],['Naranja',3,'unid','Verdura','Plaza']],
+  // Molde de atún variantes
+  'Molde de atún Papas tajadas':[['Atún',2,'latas','Despensa','Éxito'],['Huevos',2,'unid','Huevos','Santa Reyes'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Crema Leche',0.25,'pote','Lácteos','Éxito'],['Queso Doble crema',0.25,'unid','Lácteos','Éxito'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  'Molde de atún Yuca frita':[['Atún',2,'latas','Despensa','Éxito'],['Huevos',2,'unid','Huevos','Santa Reyes'],['Yuca',0.5,'kg','Verdura','Plaza'],['Crema Leche',0.25,'pote','Lácteos','Éxito'],['Queso Doble crema',0.25,'unid','Lácteos','Éxito'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza']],
+  // Pastas variantes
+  'Pastas Amatricciana':[['Pasta',0.5,'paquete','Despensa','Éxito'],['Tocineta',150,'g','Carnes frías','Éxito'],['Tomate en Lata',1,'lata','Despensa','Éxito'],['Albahaca',1,'manojo','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Ajo',1,'unid','Verdura','Plaza'],['Queso Parmesano',0.25,'bolsa','Lácteos','Éxito']],
+  'Pastas Atún':[['Pasta',0.5,'paquete','Despensa','Éxito'],['Atún',2,'latas','Despensa','Éxito'],['Tomate',3,'unid','Verdura','Plaza'],['Zanahoria',1,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Ajo',1,'unid','Verdura','Plaza'],['Queso Parmesano',0.25,'bolsa','Lácteos','Éxito']],
+  'Pastas Del huerto':[['Pasta',0.5,'paquete','Despensa','Éxito'],['Alcachofa',3,'unid','Verdura','Plaza'],['Jamón Serrano',100,'g','Carnes frías','Éxito'],['Crema Leche',0.5,'pote','Lácteos','Éxito'],['Queso Parmesano',0.25,'bolsa','Lácteos','Éxito'],['Ajo',1,'unid','Verdura','Plaza']],
+  'Pastas Jamón y crema':[['Pasta',0.5,'paquete','Despensa','Éxito'],['Jamón Cocido',150,'g','Carnes frías','Éxito'],['Crema Leche',0.5,'pote','Lácteos','Éxito'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  'Pastas Pollo y Berenjena':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Pasta',0.5,'paquete','Despensa','Éxito'],['Berenjena',1,'unid','Verdura','Plaza'],['Albahaca',1,'manojo','Verdura','Plaza'],['Queso Parmesano',0.5,'bolsa','Lácteos','Éxito']],
+  // Pechuga variantes
+  'Pechuga de pollo y Ensalada Tomates':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Tomate',3,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  'Pechuga de pollo y Papa Chorreada':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Papa Sabanera',4,'unid','Verdura','Plaza'],['Cebolla Larga',1,'unid','Verdura','Plaza'],['Queso doble Crema',0.5,'unid','Lácteos','Éxito'],['Crema Leche',0.5,'pote','Lácteos','Éxito'],['Tomate',3,'unid','Verdura','Plaza']],
+  'Pechuga de pollo y Papas tajadas':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Pechuga de pollo y Tomates al horno':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Tomate',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Pechuga de pollo y Yuca frita':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza']],
+  // Pescado variantes
+  'Pescado y Papas tajadas':[['Pescado',400,'g','Pescado','Éxito'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Pescado y Yuca frita':[['Pescado',400,'g','Pescado','Éxito'],['Yuca',0.5,'kg','Verdura','Plaza']],
+  // Pollo Jardinera variantes
+  'Pollo Jardinera y Papas al ajo':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Arveja',0.25,'taza','Verdura','Plaza'],['Zanahoria',1,'unid','Verdura','Plaza'],['Habichuelines',0.25,'taza','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Pollo Jardinera y Papas tajadas':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Arveja',0.25,'taza','Verdura','Plaza'],['Zanahoria',1,'unid','Verdura','Plaza'],['Habichuelines',0.25,'taza','Verdura','Plaza'],['Tomate',2,'unid','Verdura','Plaza'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Pollo Jardinera y Arroz y ensalada':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Arveja',0.25,'taza','Verdura','Plaza'],['Zanahoria',1,'unid','Verdura','Plaza'],['Habichuelines',0.25,'taza','Verdura','Plaza'],['Arroz',1,'taza','Despensa','Éxito'],['Cogollos',1,'unid','Verdura','Plaza']],
+  'Pollo Jardinera y Yuca frita':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Arveja',0.25,'taza','Verdura','Plaza'],['Zanahoria',1,'unid','Verdura','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza']],
+  // Pollo apanado variantes
+  'Pollo apanado Habichuelines':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Habichuelines',200,'g','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Pollo apanado Ensalda Zanahoria':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Zanahoria',2,'unid','Verdura','Plaza'],['Cebolla Larga',2,'unid','Verdura','Plaza']],
+  'Pollo apanado Ensalada Tomates':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Tomate',3,'unid','Verdura','Plaza'],['Cebolla cabezona',1,'unid','Verdura','Plaza']],
+  'Pollo apanado Papas al ajo':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Papa Sabanera',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Pollo apanado Papas tajadas':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Papa Sabanera',3,'unid','Verdura','Plaza']],
+  'Pollo apanado Tomates al horno':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Tomate',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza']],
+  'Pollo apanado Yuca frita':[['Pechuga de pollo',400,'g','Pollo','Plaza'],['Miga de Pan',1,'paquete','Despensa','Éxito'],['Yuca',0.5,'kg','Verdura','Plaza']],
+  // Punta de anca variantes
+  'Punta de Anca y Tomates al Horno':[['Punta de Anca de Cerdo',500,'g','Carne Cerdo','Plaza'],['Tomate',3,'unid','Verdura','Plaza'],['Ajo',20,'g','Verdura','Plaza'],['Naranja',3,'unid','Verdura','Plaza']],
+  'Punta de Anca y Yuca frita':[['Punta de Anca de Cerdo',500,'g','Carne Cerdo','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza'],['Naranja',3,'unid','Verdura','Plaza']],
+  'Punta de anca de cerdo y Ensalada pepino y tomate':[['Punta de Anca de Cerdo',500,'g','Carne Cerdo','Plaza'],['Tomate',1,'unid','Verdura','Plaza'],['Pepino',1,'unid','Verdura','Plaza'],['Naranja',3,'unid','Verdura','Plaza'],['Cilantro',1,'manojo','Verdura','Plaza']],
+  'Punta de anca de cerdo y Papa Frita':[['Punta de Anca de Cerdo',500,'g','Carne Cerdo','Plaza'],['Papa Frita',0.5,'paquete','Despensa','Éxito'],['Naranja',3,'unid','Verdura','Plaza']],
+  // Roastbeef variantes
+  'Roastbeef y Parmesana Berenjena':[['Roastbeef',500,'g','Carne Res','Plaza'],['Berenjena',2,'unid','Verdura','Plaza'],['Tomate',4,'unid','Verdura','Plaza'],['Queso doble Crema',0.5,'unid','Lácteos','Éxito'],['Albahaca',1,'manojo','Verdura','Plaza'],['Vino',0.25,'botella','Despensa','D1']],
+  'Roastbeef y Molde Papa y Coliflor':[['Roastbeef',500,'g','Carne Res','Plaza'],['Papa Sabanera',4,'unid','Verdura','Plaza'],['Coliflor',1,'unid','Verdura','Plaza'],['Leche',0.5,'L','Lácteos','Éxito'],['Queso Parmesano',0.25,'bolsa','Lácteos','Éxito'],['Vino',0.25,'botella','Despensa','D1']],
+  'Roastbeef y Yuca frita':[['Roastbeef',500,'g','Carne Res','Plaza'],['Yuca',0.5,'kg','Verdura','Plaza'],['Vino',0.25,'botella','Despensa','D1']],
+  // Sanduches variantes
+  'Sanduches de Costilla':[['Pan Tajado',0.5,'paquete','Despensa','Éxito'],['Queso Tajado',3,'tajadas','Lácteos','Éxito']],
+  'Sanduches de Roastbeef':[['Pan Tajado',0.5,'paquete','Despensa','Éxito'],['Queso Tajado',3,'tajadas','Lácteos','Éxito']],
+  'Sanduches de Asado de Tira':[['Pan Tajado',0.5,'paquete','Despensa','Éxito'],['Queso Tajado',3,'tajadas','Lácteos','Éxito']],
+  // Strogonoff variantes
+  'Strogonoff y Papa criolla':[['Lomo de Res',400,'g','Carne Res','Plaza'],['Papa criolla',400,'g','Verdura','Plaza'],['Crema Leche',0.5,'pote','Lácteos','Éxito'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Vino Blanco',0.25,'botella','Despensa','D1']],
+  'Strogonoff y Arroz y Arveja':[['Lomo de Res',400,'g','Carne Res','Plaza'],['Arroz',1,'taza','Despensa','Éxito'],['Arveja',0.5,'taza','Verdura','Plaza'],['Crema Leche',0.5,'pote','Lácteos','Éxito'],['Cebolla cabezona',1,'unid','Verdura','Plaza'],['Vino Blanco',0.25,'botella','Despensa','D1']]
 };
 
 const FIJOS_BASE=[
@@ -298,12 +547,13 @@ let S={
   platos:{almuerzo_semana:[],almuerzo_finde:[],cena_semana:[],cena_finde:[]},
   platosFit:{almuerzo_semana:[],almuerzo_finde:[],cena_semana:[],cena_finde:[]},
   fitPct:0,
-  purchaseDate:null      // ISO date string of shopping day
+  purchaseDate:null,
+  currentWeek:0
 };
 
-function saveState(){try{localStorage.setItem('menuapp_v5',JSON.stringify(S));}catch(e){}}
+function saveState(){try{localStorage.setItem('menuapp_v6',JSON.stringify(S));}catch(e){}}
 function loadState(){
-  try{const d=localStorage.getItem('menuapp_v5');if(d){const p=JSON.parse(d);Object.assign(S,p);}}catch(e){}
+  try{const d=localStorage.getItem('menuapp_v6');if(d){const p=JSON.parse(d);Object.assign(S,p);}}catch(e){}
   S.recetas=Object.assign({},S.recetas); // custom only; base merged at use time
   for(const cat of['almuerzo_semana','almuerzo_finde','cena_semana','cena_finde']){
     S.platos[cat]=[...new Set([...PLATOS_BASE[cat],...(S.platos[cat]||[])])];
@@ -356,7 +606,7 @@ function pickFromMixed(pool,last){
 
 function generateAll(){
   const hols=getHols();
-  S.menu={};S.marketChecked={};
+  S.menu={};S.marketChecked={};S.currentWeek=0;
   let lastA='',lastC='';
   const inv=S.inventory;
   const pct=S.fitPct||0;
@@ -368,41 +618,86 @@ function generateAll(){
     cF:buildMixedPool(S.platos.cena_finde,S.platosFit.cena_finde,pct)
   };
 
+  // Protein family rotation limits over 28 days
+  // Pescado: max 3, Pollo: max 8, others: no hard limit but back-to-back blocked
+  const familyCounts={};
+  const maxFamily={Pescado:3, Pollo:8, Atun:4};
+  let sobraUsedThisWeek=false;
+
   for(let i=0;i<28;i++){
     const ds=addDays(S.startDate,i);
+    if(dayOfWeek(ds)===0) sobraUsedThisWeek=false; // reset every Sunday
     const wknd=isWeekend(ds,hols);
     const fri=isFriday(ds);
     const hol=hols.has(ds);
     const aPool=wknd?pools.aF:pools.aS;
     const cPool=(wknd||fri)?pools.cF:pools.cS;
 
-    function pickWithInv(pool,last){
+    // Smart picker: respects protein family limits and no immediate repeat
+    function smartPick(pool,last,familyCounts,maxPerFamily){
+      const all=Array.isArray(pool)?pool:[...pool.normal,...pool.fit];
+      // 1. Prefer inventory items first (already smart)
+      let candidates=all;
       if(Object.keys(inv).length>0){
-        const all=Array.isArray(pool)?pool:[...pool.normal,...pool.fit];
-        const pref=all.filter(d=>{const r=getReceta(d);return r&&r.some(([ing])=>inv[ing.toLowerCase()]?.qty>0);}).filter(x=>x!==last);
-        if(pref.length)return pref[Math.floor(Math.random()*pref.length)];
+        const pref=all.filter(d=>{const r=getReceta(d);return r&&r.some(([ing])=>inv[ing.toLowerCase()]?.qty>0);});
+        if(pref.length>0)candidates=pref;
       }
-      return pickFromMixed(pool,last);
+      // 2. Filter: no immediate repeat, no over-represented protein family
+      const filtered=candidates.filter(d=>{
+        if(d===last)return false;
+        const fam=getDishFamily(d);
+        if(fam==='Pescado'&&(familyCounts['Pescado']||0)>=(maxPerFamily['Pescado']||3))return false;
+        if((familyCounts[fam]||0)>=(maxPerFamily[fam]||99))return false;
+        return true;
+      });
+      // 3. Also avoid same family as last dish (no back-to-back same protein)
+      const noRepeatFam=filtered.filter(d=>getDishFamily(d)!==getDishFamily(last||''));
+      const pool2=noRepeatFam.length>0?noRepeatFam:filtered.length>0?filtered:candidates;
+      // 4. Pick from mixed (respects fit%)
+      if(Array.isArray(pool)){return pool2[Math.floor(Math.random()*pool2.length)]||pickFromMixed(pool,last);}
+      const fitOnes=pool2.filter(d=>[...pool.fit].includes(d));
+      const normOnes=pool2.filter(d=>[...pool.normal].includes(d));
+      const useFit=Math.random()*100<(pool.pct||0);
+      const src=(useFit&&fitOnes.length)?fitOnes:normOnes.length?normOnes:pool2;
+      return src[Math.floor(Math.random()*src.length)]||pickFromMixed(pool,last);
     }
 
-    const almuerzo=pickWithInv(aPool,lastA);
-    const cena=pickWithInv(cPool,lastC);
+    const almuerzo=smartPick(aPool,lastA,familyCounts,maxFamily);
+    // Update family counter
+    const famA=getDishFamily(almuerzo);
+    familyCounts[famA]=(familyCounts[famA]||0)+1;
+
+    // Cena: if weekend/friday, occasionally use sobras (max 1/week, ~25% chance)
+    let cena;
+    if(wknd||fri){
+      // Sobras: optional, max 1 per week, ~25% chance when conditions met
+      const sobra=getCenaFromSobras(almuerzo);
+      const useSobra=sobra && sobraUsedThisWeek===false && Math.random()<0.25;
+      if(useSobra){
+        cena=sobra;
+        sobraUsedThisWeek=true;
+      } else {
+        cena=smartPick(cPool,lastC,{},{});
+      }
+    } else {
+      cena=smartPick(cPool,lastC,{},{});
+    }
+
     const allFitA=[...S.platosFit.almuerzo_semana,...S.platosFit.almuerzo_finde];
     const allFitC=[...S.platosFit.cena_semana,...S.platosFit.cena_finde];
     lastA=almuerzo;lastC=cena;
-    S.menu[ds]={almuerzo,cena,wknd,fri,holiday:hol,confirmed:false,fitAlm:allFitA.includes(almuerzo),fitCena:allFitC.includes(cena)};
+    S.menu[ds]={almuerzo,cena,wknd,fri,holiday:hol,confirmed:false,
+      fitAlm:allFitA.includes(almuerzo),fitCena:allFitC.includes(cena),
+      esSobra:(wknd||fri)&&!!getCenaFromSobras(almuerzo)&&cena===getCenaFromSobras(almuerzo)};
   }
   saveState();renderAll();
 }
 
 function confirmAll(){
   if(!Object.keys(S.menu).length){alert('Genera el menú primero.');return;}
-  Object.keys(S.menu).forEach(ds=>S.menu[ds].confirmed=true);
-  buildInventoryFromMenu();
+  Object.keys(S.menu).forEach(ds=>{S.menu[ds].confAlm=true;S.menu[ds].confCena=true;S.menu[ds].confirmed=true;});
   saveState();renderAll();
 }
-
-function confirmDay(ds){if(S.menu[ds]){S.menu[ds].confirmed=true;saveState();renderCalendar();}}
 
 function buildInventoryFromMenu(){
   const totals=computeMarketTotals(false);
@@ -425,7 +720,7 @@ function buildInventoryFromMenu(){
 // ═══════════════════════════════════════════════════════════════
 // RENDER ALL
 // ═══════════════════════════════════════════════════════════════
-function renderAll(){updateHeader();renderCalendar();renderMealPrep();renderMarket();renderInventory();renderRecipes();}
+function renderAll(){updateHeader();renderCalendar();renderResumen();renderMealPrep();renderMarket();renderInventory();renderRecipes();}
 
 function updateHeader(){
   const total=Object.keys(S.menu).length;
@@ -435,124 +730,462 @@ function updateHeader(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CALENDAR — rolling 28 days in 4-week rows
+// CALENDAR — week-by-week semi-manual review
 // ═══════════════════════════════════════════════════════════════
+const DAY_NAMES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
 function renderCalendar(){
   const hols=getHols();
   const today=todayStr();
   const total=Object.keys(S.menu).length;
   const conf=Object.values(S.menu).filter(d=>d.confirmed).length;
+  const currentWeek=S.currentWeek||0;
 
+  // Top controls
   let html=`<div class="ctrl-bar">
     <div class="cg">
-      <label>Inicio de planificación</label>
-      <input type="date" value="${S.startDate||today}" onchange="S.startDate=this.value;S.purchaseDate=this.value;saveState();if(Object.keys(S.menu).length)generateAll();else renderCalendar()">
+      <label>Inicio</label>
+      <input type="date" value="${S.startDate||today}" onchange="S.startDate=this.value;S.purchaseDate=this.value;saveState();generateAll()">
     </div>
     <div class="cg">
-      <label>Almuerzos &amp; Cenas fit <span id="fit-pct-lbl">${S.fitPct||0}</span>%</label>
-      <input type="range" min="0" max="100" step="10" value="${S.fitPct||0}" oninput="S.fitPct=+this.value;document.getElementById('fit-pct-lbl').textContent=this.value" style="width:130px">
+      <label>Fit <span id="fit-pct-lbl">${S.fitPct||0}</span>%</label>
+      <input type="range" min="0" max="100" step="10" value="${S.fitPct||0}" oninput="S.fitPct=+this.value;document.getElementById('fit-pct-lbl').textContent=this.value" style="width:100px">
     </div>
     <div class="cg" style="margin-left:auto">
-      <label>Progreso</label>
-      <span style="font-size:.82rem;color:var(--txt2)">${total?`${conf}/${total} días`:'-'}</span>
+      <label>Aprobados</label>
+      <span style="font-size:.85rem;font-weight:500;color:${conf===total&&total?'var(--grn)':'var(--txt2)'}">${conf}/${total||'—'}</span>
     </div>
-    ${total?`<button class="btn btn-warn btn-sm" onclick="confirmAll()">Confirmar todo</button>`:''}
-    <button class="btn btn-primary btn-sm" onclick="generateAll()">Generar 4 semanas</button>
+    <button class="btn btn-primary btn-sm" onclick="generateAll()">Proponer menú</button>
   </div>`;
 
-  if(total){html+=`<div class="progress-bar"><div class="progress-fill" style="width:${Math.round(conf/total*100)}%"></div></div><p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${Math.round(conf/total*100)}% confirmado</p>`;}
-
-  // Header row
-  html+=`<div class="cal-hdr-row">`;
-  DAY_NAMES_SHORT.forEach(n=>html+=`<div class="cal-hdr">${n}</div>`);
-  html+=`</div>`;
-
-  if(!total){html+=`<div class="notice">Selecciona una fecha de inicio y haz clic en "Generar 4 semanas".</div>`;document.getElementById('panel-calendario').innerHTML=html;return;}
-
-  // Build week rows — always 4 complete weeks = 28 days
-  // Find which day-of-week the start falls on
-  const startDow=dayOfWeek(S.startDate); // 0=Sun
-  // We output a grid: pad start, then 28 days, pad end to complete last week
-  const totalCells=startDow+28;
-  const rows=Math.ceil(totalCells/7);
-
-  html+=`<div>`;
-  for(let row=0;row<rows;row++){
-    html+=`<div class="week-row">`;
-    for(let col=0;col<7;col++){
-      const cellIdx=row*7+col;
-      const dayIdx=cellIdx-startDow; // 0..27 = actual days
-      if(dayIdx<0||dayIdx>=28){html+=`<div class="day empty"></div>`;continue;}
-      const ds=addDays(S.startDate,dayIdx);
-      const data=S.menu[ds];
-      const isToday=ds===today;
-      const isPast=ds<today;
-
-      if(!data){html+=`<div class="day${isToday?' today':''}"><div class="day-top"><span class="day-num">${fmt(ds)}</span></div></div>`;continue;}
-
-      let cls='day';
-      if(data.holiday)cls+=' holi';
-      else if(data.wknd)cls+=' wknd';
-      if(data.confirmed)cls+=' confirmed';
-      if(isToday)cls+=' today';
-      if(isPast)cls+=' past';
-
-      const hB=data.holiday?`<span class="badge b-holi">${hols.name(ds)}</span>`:'';
-      const fB=!data.holiday&&(data.wknd||data.fri)?`<span class="badge b-fs">FS</span>`:'';
-      const cB=data.confirmed?`<span class="badge b-conf">✓</span>`:'';
-      const faA=data.fitAlm?`<span class="badge b-fit">fit</span>`:'';
-      const faC=data.fitCena?`<span class="badge b-fit">fit</span>`:'';
-
-      html+=`<div class="${cls}">
-        <div class="day-top">
-          <span class="day-num">${fmt(ds)}</span>
-          <div style="display:flex;gap:2px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${hB}${fB}${cB}
-            <button class="day-edit" onclick="openEditModal('${ds}')" title="Editar">✎</button>
-            ${!data.confirmed?`<button class="day-edit" onclick="confirmDay('${ds}')" title="Confirmar" style="color:var(--grn)">✓</button>`:''}
-          </div>
-        </div>
-        <div class="meal-lbl">almuerzo</div>
-        <div class="meal-txt">${data.almuerzo} ${faA}</div>
-        <div class="meal-lbl">cena</div>
-        <div class="meal-txt">${data.cena} ${faC}</div>
-      </div>`;
-    }
-    html+=`</div>`;
+  if(!total){
+    html+=`<div class="notice">Selecciona una fecha y haz clic en "Proponer menú". Luego revisa y aprueba cada plato semana a semana.</div>`;
+    document.getElementById('panel-calendario').innerHTML=html;return;
   }
+
+  // Progress bar
+  html+=`<div class="progress-bar"><div class="progress-fill" style="width:${Math.round(conf/total*100)}%"></div></div>
+  <p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${Math.round(conf/total*100)}% aprobado — revisa semana a semana, aprueba o cambia cada plato</p>`;
+
+  // Week navigation dots
+  html+=`<div class="week-nav">
+    <button class="week-nav-btn" onclick="setWeek(${currentWeek-1})" ${currentWeek===0?'disabled':''}>‹</button>
+    <div class="week-dots">
+      ${[0,1,2,3].map(w=>`<div class="week-dot${w===currentWeek?' active':''}" onclick="setWeek(${w})" title="Semana ${w+1}"></div>`).join('')}
+    </div>
+    <button class="week-nav-btn" onclick="setWeek(${currentWeek+1})" ${currentWeek===3?'disabled':''}>›</button>
+  </div>`;
+
+  // Build the 7 days of the current week
+  const weekDays=[];
+  for(let d=0;d<7;d++){
+    const dayIdx=currentWeek*7+d;
+    if(dayIdx<28) weekDays.push({ds:addDays(S.startDate,dayIdx),dayIdx});
+  }
+
+  const weekConf=weekDays.filter(({ds})=>S.menu[ds]?.confirmed).length;
+  const weekLabel=`Semana ${currentWeek+1} — ${fmt(weekDays[0].ds)} al ${fmt(weekDays[weekDays.length-1].ds)}`;
+
+  html+=`<div class="week-card">
+    <div class="week-header">
+      <span class="week-title">${weekLabel}</span>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span class="week-progress">${weekConf}/${weekDays.length} aprobados</span>
+        <button class="btn btn-sm btn-warn" onclick="confirmWeek(${currentWeek})" style="font-size:.72rem;padding:.2rem .55rem">Aprobar semana</button>
+      </div>
+    </div>`;
+
+  weekDays.forEach(({ds})=>{
+    const data=S.menu[ds];
+    if(!data) return;
+    const dw=dayOfWeek(ds);
+    const isToday=ds===today;
+    let rowCls='day-row';
+    if(data.confirmed) rowCls+=' confirmed-row';
+    else if(data.holiday) rowCls+=' holi-row';
+    else if(data.wknd) rowCls+=' wknd-row';
+
+    const badges=[];
+    if(data.holiday) badges.push(`<span class="badge b-holi">${hols.name(ds)}</span>`);
+    else if(data.wknd) badges.push(`<span class="badge b-fs">FS</span>`);
+    if(isToday) badges.push(`<span class="badge" style="background:var(--blu-l);color:var(--blu)">hoy</span>`);
+
+    const confAlm=data.confAlm||false;
+    const confCena=data.confCena||false;
+
+    html+=`<div class="${rowCls}">
+      <div class="day-col-date">
+        <span class="dow">${DAY_NAMES[dw].slice(0,3)}</span>
+        <span class="dnum">${fmt(ds)}</span>
+        <div class="dbadges">${badges.join('')}</div>
+      </div>
+      <div class="meal-cell">
+        <div class="meal-cell-lbl">
+          Almuerzo
+          ${data.fitAlm?`<span class="badge b-fit">fit</span>`:''}
+          ${confAlm?`<span class="badge b-conf">✓</span>`:''}
+        </div>
+        <div class="meal-cell-name">${data.almuerzo}</div>
+        <div class="meal-cell-actions">
+          ${!confAlm?`<button class="act-btn" onclick="approveSlot('${ds}','alm')">✓ Aprobar</button>`:`<button class="act-btn confirmed" onclick="unapproveSlot('${ds}','alm')">✓ Aprobado</button>`}
+          <button class="act-btn" onclick="openSwap('${ds}','alm')">↺ Cambiar</button>
+        </div>
+      </div>
+      <div class="meal-cell">
+        <div class="meal-cell-lbl">
+          Cena
+          ${data.fitCena?`<span class="badge b-fit">fit</span>`:''}
+          ${data.esSobra?`<span class="badge" style="background:var(--amb-l);color:var(--amb)">sobras</span>`:''}
+          ${confCena?`<span class="badge b-conf">✓</span>`:''}
+        </div>
+        <div class="meal-cell-name">${data.cena}</div>
+        <div class="meal-cell-actions">
+          ${!confCena?`<button class="act-btn" onclick="approveSlot('${ds}','cena')">✓ Aprobar</button>`:`<button class="act-btn confirmed" onclick="unapproveSlot('${ds}','cena')">✓ Aprobado</button>`}
+          <button class="act-btn" onclick="openSwap('${ds}','cena')">↺ Cambiar</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
   html+=`</div>`;
-  html+=`<div style="margin-top:.65rem;font-size:.7rem;color:var(--txt3);display:flex;gap:.65rem;flex-wrap:wrap">
-    <span><span class="badge b-fs">FS</span> Fin de semana/festivo</span>
-    <span><span class="badge b-conf">✓</span> Confirmado</span>
+
+  // Week navigation bottom
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem">
+    <button class="btn btn-sm" onclick="setWeek(${currentWeek-1})" ${currentWeek===0?'disabled':''} style="${currentWeek===0?'opacity:.3':''}">← Semana anterior</button>
+    <span style="font-size:.75rem;color:var(--txt3)">Semana ${currentWeek+1} de 4</span>
+    ${currentWeek<3
+      ? `<button class="btn btn-sm btn-primary" onclick="setWeek(${currentWeek+1})">Siguiente semana →</button>`
+      : `<button class="btn btn-warn btn-sm" onclick="finalizeMenu()" ${conf<total?'':'style="opacity:.6"'}>Finalizar y generar mercado →</button>`
+    }
+  </div>`;
+
+  html+=`<div style="margin-top:.75rem;font-size:.7rem;color:var(--txt3);display:flex;gap:.65rem;flex-wrap:wrap">
+    <span><span class="badge b-fs">FS</span> Fin de semana</span>
+    <span><span class="badge b-conf">✓</span> Aprobado</span>
     <span><span class="badge b-fit">fit</span> Plato fit</span>
-    <span>Viernes: almuerzo semana, cena fin de semana</span>
   </div>`;
 
   document.getElementById('panel-calendario').innerHTML=html;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// EDIT MODAL
-// ═══════════════════════════════════════════════════════════════
-function openEditModal(ds){
-  const data=S.menu[ds];if(!data)return;
-  const aPool=data.wknd?[...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde]:[...S.platos.almuerzo_semana,...S.platosFit.almuerzo_semana];
-  const cPool=(data.wknd||data.fri)?[...S.platos.cena_finde,...S.platosFit.cena_finde]:[...S.platos.cena_semana,...S.platosFit.cena_semana];
-  const opts=(pool,cur)=>[...new Set(pool)].map(p=>`<option${p===cur?' selected':''}>${p}</option>`).join('');
-  document.getElementById('modal-box').innerHTML=`
-    <h2>Editar — ${fmtFull(ds)}</h2>
-    <div class="cg" style="margin-bottom:.7rem"><label>Almuerzo</label><select id="edit-alm" style="width:100%">${opts(aPool,data.almuerzo)}</select></div>
-    <div class="cg"><label>Cena</label><select id="edit-cena" style="width:100%">${opts(cPool,data.cena)}</select></div>
-    <div class="modal-footer">
-      <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary btn-sm" onclick="saveEdit('${ds}')">Guardar</button>
-    </div>`;
-  document.getElementById('modal-overlay').style.display='flex';
+function setWeek(w){
+  if(w<0||w>3)return;
+  S.currentWeek=w;
+  saveState();
+  renderCalendar();
 }
 
-function saveEdit(ds){
-  S.menu[ds].almuerzo=document.getElementById('edit-alm').value;
-  S.menu[ds].cena=document.getElementById('edit-cena').value;
-  closeModal();saveState();renderCalendar();renderMealPrep();renderMarket();
+function approveSlot(ds,slot){
+  if(!S.menu[ds])return;
+  if(slot==='alm') S.menu[ds].confAlm=true;
+  else S.menu[ds].confCena=true;
+  // Mark day confirmed when both approved
+  if(S.menu[ds].confAlm&&S.menu[ds].confCena) S.menu[ds].confirmed=true;
+  saveState();renderCalendar();updateHeader();
+}
+
+function unapproveSlot(ds,slot){
+  if(!S.menu[ds])return;
+  if(slot==='alm') S.menu[ds].confAlm=false;
+  else S.menu[ds].confCena=false;
+  S.menu[ds].confirmed=false;
+  saveState();renderCalendar();updateHeader();
+}
+
+function confirmWeek(weekIdx){
+  for(let d=0;d<7;d++){
+    const ds=addDays(S.startDate,weekIdx*7+d);
+    if(S.menu[ds]){
+      S.menu[ds].confAlm=true;
+      S.menu[ds].confCena=true;
+      S.menu[ds].confirmed=true;
+    }
+  }
+  saveState();renderCalendar();updateHeader();
+}
+
+function finalizeMenu(){
+  const total=Object.keys(S.menu).length;
+  const conf=Object.values(S.menu).filter(d=>d.confirmed).length;
+  if(conf<total){
+    if(!confirm(`Aún tienes ${total-conf} platos sin aprobar. ¿Finalizar de todas formas?`))return;
+    Object.keys(S.menu).forEach(ds=>{
+      if(!S.menu[ds].confirmed){S.menu[ds].confAlm=true;S.menu[ds].confCena=true;S.menu[ds].confirmed=true;}
+    });
+  }
+  saveState();
+  renderAll();
+  // Navigate to resumen (calendar view)
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[data-tab="resumen"]').classList.add('active');
+  document.getElementById('panel-resumen').classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESUMEN — read-only calendar view of the confirmed menu
+// ═══════════════════════════════════════════════════════════════
+function renderResumen(){
+  const panel=document.getElementById('panel-resumen');
+  const total=Object.keys(S.menu).length;
+  if(!total){
+    panel.innerHTML=`<div class="notice">Genera y finaliza el menú para ver el resumen en calendario.</div>`;
+    return;
+  }
+
+  const hols=getHols();
+  const today=todayStr();
+  const conf=Object.values(S.menu).filter(d=>d.confirmed).length;
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+    <div>
+      <p style="font-size:.8rem;color:var(--txt2)">${fmt(S.startDate)} → ${fmt(addDays(S.startDate,27))} · ${conf}/${total} confirmados</p>
+    </div>
+    <div style="display:flex;gap:.4rem">
+      <button class="btn btn-sm" onclick="printResumen()">Imprimir</button>
+      <button class="btn btn-sm btn-primary" onclick="switchTab('mercado')">Ver mercado →</button>
+    </div>
+  </div>`;
+
+  // 7-column grid header
+  html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem;margin-bottom:.3rem">`;
+  ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(n=>
+    html+=`<div style="text-align:center;font-size:.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;font-family:monospace;padding:.25rem 0">${n}</div>`
+  );
+  html+=`</div>`;
+
+  // Build grid: pad to start on correct DOW, then 28 days
+  const startDow=dayOfWeek(S.startDate);
+  const totalCells=startDow+28;
+  const rows=Math.ceil(totalCells/7);
+
+  html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem" id="resumen-grid">`;
+  for(let i=0;i<rows*7;i++){
+    const dayIdx=i-startDow;
+    if(dayIdx<0||dayIdx>=28){
+      html+=`<div style="background:var(--surf2);border-radius:var(--r);opacity:.25;min-height:90px"></div>`;
+      continue;
+    }
+    const ds=addDays(S.startDate,dayIdx);
+    const data=S.menu[ds];
+    const isToday=ds===today;
+
+    let bg='var(--surf)';
+    let border='.5px solid var(--brd)';
+    if(data?.holiday){bg='var(--amb-l)';border='.5px solid var(--amb)';}
+    else if(data?.wknd){bg='var(--grn-l)';border='.5px solid var(--grn)';}
+    if(isToday) border='2px solid var(--blu)';
+
+    html+=`<div style="background:${bg};border:${border};border-radius:var(--r);padding:.38rem .42rem;min-height:90px;font-size:.68rem">`;
+    html+=`<div style="font-family:monospace;font-size:.65rem;color:var(--txt3);margin-bottom:.25rem;display:flex;justify-content:space-between;align-items:center">
+      <span>${fmt(ds)}</span>
+      ${data?.holiday?`<span style="font-size:.55rem;background:var(--amb-l);color:var(--amb);padding:0 3px;border-radius:4px">${hols.name(ds)}</span>`:''}
+      ${!data?.holiday&&data?.wknd?`<span style="font-size:.55rem;background:var(--grn-l);color:var(--grn-d);padding:0 3px;border-radius:4px">FS</span>`:''}
+    </div>`;
+    if(data){
+      html+=`<div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.03em;color:var(--txt3)">almuerzo</div>
+      <div style="font-size:.68rem;color:var(--txt);line-height:1.3;margin-bottom:.2rem">${data.almuerzo}</div>
+      <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.03em;color:var(--txt3)">cena</div>
+      <div style="font-size:.68rem;color:var(--txt);line-height:1.3">${data.cena}</div>`;
+    }
+    html+=`</div>`;
+  }
+  html+=`</div>`;
+
+  // Legend
+  html+=`<div style="margin-top:.65rem;font-size:.7rem;color:var(--txt3);display:flex;gap:.65rem;flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--grn-l);border:.5px solid var(--grn);display:inline-block"></span>Fin de semana</span>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--amb-l);border:.5px solid var(--amb);display:inline-block"></span>Festivo</span>
+  </div>`;
+
+  // Mobile: list view (one day per row)
+  let listHtml=`<div id="resumen-list">`;
+  Object.keys(S.menu).sort().forEach(ds=>{
+    const data=S.menu[ds];
+    const dw=dayOfWeek(ds);
+    const bg=data.holiday?'var(--amb-l)':data.wknd?'var(--grn-l)':'var(--surf)';
+    const border=data.holiday?'var(--amb)':data.wknd?'var(--grn)':'var(--brd)';
+    listHtml+=`<div style="background:${bg};border:.5px solid ${border};border-radius:var(--r);padding:.6rem .85rem;margin-bottom:.4rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <span style="font-family:monospace;font-size:.75rem;font-weight:500">${DAY_NAMES[dw]}, ${fmtFull(ds)}</span>
+        ${data.holiday?`<span class="badge b-holi">${hols.name(ds)}</span>`:data.wknd?`<span class="badge b-fs">FS</span>`:''}
+      </div>
+      <div style="font-size:.7rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.03em">Almuerzo</div>
+      <div style="font-size:.82rem;margin-bottom:.3rem">${data.almuerzo}</div>
+      <div style="font-size:.7rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.03em">Cena</div>
+      <div style="font-size:.82rem">${data.cena}</div>
+    </div>`;
+  });
+  listHtml+=`</div>`;
+  panel.innerHTML=html+listHtml;
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+function printResumen(){
+  const grid=document.getElementById('resumen-grid');
+  if(!grid)return;
+  const w=window.open('','_blank');
+  const days=Object.keys(S.menu).sort();
+  let body=`<h2>Menú — ${fmt(S.startDate)} al ${fmt(addDays(S.startDate,27))}</h2>
+  <table style="width:100%;border-collapse:collapse;font-family:Georgia,serif;font-size:11px">
+  <tr>${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(d=>`<th style="text-align:center;padding:4px;border:1px solid #ddd;background:#f5f5f5">${d}</th>`).join('')}</tr>`;
+  const startDow=dayOfWeek(S.startDate);
+  const rows=Math.ceil((startDow+28)/7);
+  for(let r=0;r<rows;r++){
+    body+=`<tr>`;
+    for(let c=0;c<7;c++){
+      const idx=r*7+c-startDow;
+      if(idx<0||idx>=28){body+=`<td style="border:1px solid #eee;background:#fafafa"></td>`;continue;}
+      const ds=addDays(S.startDate,idx);
+      const d=S.menu[ds];
+      const bg=d?.wknd?'#f0fdf4':d?.holiday?'#fffbeb':'#fff';
+      body+=`<td style="border:1px solid #ddd;padding:5px;vertical-align:top;background:${bg}">
+        <div style="font-size:10px;color:#888;margin-bottom:3px;font-family:monospace">${fmt(ds)}</div>
+        ${d?`<div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.04em">Almuerzo</div>
+        <div style="font-size:10px;margin-bottom:3px">${d.almuerzo}</div>
+        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.04em">Cena</div>
+        <div style="font-size:10px">${d.cena}</div>`:''}
+      </td>`;
+    }
+    body+=`</tr>`;
+  }
+  body+=`</table>`;
+  w.document.write(`<!DOCTYPE html><html><head><title>Menú</title></head><body style="padding:1.5rem">${body}</body></html>`);
+  w.document.close();setTimeout(()=>w.print(),400);
+}
+// ═══════════════════════════════════════════════════════════════
+// Pool global para el swap activo (evita problemas de escapado en onclick)
+let _swapPool=[];
+let _swapDs='';
+let _swapSlot='';
+let _swapExcluded=new Set();
+
+function openSwap(ds,slot){
+  const data=S.menu[ds];if(!data)return;
+  _swapDs=ds; _swapSlot=slot;
+  const isAlm=slot==='alm';
+  const current=isAlm?data.almuerzo:data.cena;
+  const pool=isAlm
+    ?(data.wknd?[...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde]:[...S.platos.almuerzo_semana,...S.platosFit.almuerzo_semana])
+    :((data.wknd||data.fri)?[...S.platos.cena_finde,...S.platosFit.cena_finde]:[...S.platos.cena_semana,...S.platosFit.cena_semana]);
+  _swapPool=[...new Set(pool)];
+  _swapExcluded=new Set([current]);
+
+  document.getElementById('modal-box').innerHTML=`
+    <h2>Cambiar ${isAlm?'almuerzo':'cena'} — ${fmtFull(ds)}</h2>
+    <p style="font-size:.78rem;color:var(--txt2);margin-bottom:.75rem">Actual: <strong>${current}</strong></p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+      <span class="section-ttl" style="margin:0">Sugerencias</span>
+      <button class="btn btn-sm" onclick="refreshSuggestions()" style="font-size:.7rem">↺ Otras opciones</button>
+    </div>
+    <div id="sugg-container" style="margin-bottom:.9rem"></div>
+    <div class="section-ttl">Buscar en todos los platos</div>
+    <input class="search-input" type="text" id="swap-search" placeholder="Escribe para buscar..." oninput="filterSwap(this.value)">
+    <div id="swap-results" class="search-results" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
+    </div>`;
+  document.getElementById('modal-overlay').style.display='flex';
+  renderSuggestions();
+}
+
+function getSuggestions(){
+  const data=S.menu[_swapDs];
+  const curFam=getDishFamily(_swapSlot==='alm'?data.almuerzo:data.cena);
+  const candidates=_swapPool.filter(d=>!_swapExcluded.has(d));
+  // Shuffle candidates for variety
+  const shuffled=[...candidates].sort(()=>Math.random()-.5);
+  const suggestions=[];
+  const seenFams=new Set([curFam]);
+  // Prefer different families
+  for(const d of shuffled){
+    const f=getDishFamily(d);
+    if(!seenFams.has(f)){seenFams.add(f);suggestions.push(d);}
+    if(suggestions.length>=3)break;
+  }
+  // Fill with any remaining
+  for(const d of shuffled){
+    if(suggestions.length>=3)break;
+    if(!suggestions.includes(d))suggestions.push(d);
+  }
+  return suggestions;
+}
+
+function renderSuggestions(){
+  const suggestions=getSuggestions();
+  const container=document.getElementById('sugg-container');
+  if(!container)return;
+  if(!suggestions.length){
+    container.innerHTML=`<p style="font-size:.78rem;color:var(--txt3)">No hay más opciones disponibles.</p>`;
+    return;
+  }
+  container.innerHTML=suggestions.map((s,i)=>
+    `<div class="sugg-chip" onclick="pickSuggestion(${i})" data-dish="${encodeURIComponent(s)}">${s}</div>`
+  ).join('');
+}
+
+function refreshSuggestions(){
+  // Add current suggestions to excluded so we don't repeat them
+  const chips=document.querySelectorAll('#sugg-container .sugg-chip');
+  chips.forEach(c=>{
+    const dish=decodeURIComponent(c.getAttribute('data-dish'));
+    _swapExcluded.add(dish);
+  });
+  // If we've excluded too many, reset (keep only current dish excluded)
+  if(_swapPool.filter(d=>!_swapExcluded.has(d)).length<3){
+    const data=S.menu[_swapDs];
+    const current=_swapSlot==='alm'?data.almuerzo:data.cena;
+    _swapExcluded=new Set([current]);
+  }
+  renderSuggestions();
+}
+
+function pickSuggestion(idx){
+  const chips=document.querySelectorAll('#sugg-container .sugg-chip');
+  const dish=chips[idx]?decodeURIComponent(chips[idx].getAttribute('data-dish')):null;
+  if(dish)doSwap(dish);
+}
+
+function filterSwap(query){
+  const res=document.getElementById('swap-results');
+  if(!query.trim()){res.style.display='none';return;}
+  const q=query.toLowerCase();
+  const matches=_swapPool.filter(d=>d.toLowerCase().includes(q)).slice(0,15);
+  if(!matches.length){
+    res.innerHTML=`<div style="padding:.5rem .75rem;font-size:.78rem;color:var(--txt3)">Sin resultados para "${query}"</div>`;
+    res.style.display='block';return;
+  }
+  res.innerHTML=matches.map((d,i)=>
+    `<div class="search-result-item" data-dish="${encodeURIComponent(d)}" onclick="pickResult(this)">${d}</div>`
+  ).join('');
+  res.style.display='block';
+}
+
+function pickResult(el){
+  const dish=decodeURIComponent(el.getAttribute('data-dish'));
+  doSwap(dish);
+}
+
+function doSwap(dish){
+  if(!S.menu[_swapDs])return;
+  if(_swapSlot==='alm'){
+    S.menu[_swapDs].almuerzo=dish;
+    S.menu[_swapDs].confAlm=false;
+    S.menu[_swapDs].fitAlm=[...S.platosFit.almuerzo_semana,...S.platosFit.almuerzo_finde].includes(dish);
+  } else {
+    S.menu[_swapDs].cena=dish;
+    S.menu[_swapDs].confCena=false;
+    S.menu[_swapDs].fitCena=[...S.platosFit.cena_semana,...S.platosFit.cena_finde].includes(dish);
+    S.menu[_swapDs].esSobra=false;
+  }
+  S.menu[_swapDs].confirmed=false;
+  closeModal();saveState();renderCalendar();updateHeader();
 }
 
 function closeModal(){document.getElementById('modal-overlay').style.display='none';}
@@ -654,96 +1287,98 @@ function setPurchaseDate(val){S.purchaseDate=val;saveState();renderMarket();}
 function computeMarketTotals(subtractInv=true){
   const totals={};
 
+  const STORE_NORM={'Exito':'Éxito','exito':'Éxito','EXITO':'Éxito'};
+
   function addIng(ing,qty,unit,tipo,tienda,ds){
+    const store=STORE_NORM[tienda]||tienda||'Otro';
     const key=ing.toLowerCase().trim();
     const isProt=isProteinCategory(tipo);
     if(!totals[key]){
-      totals[key]={name:ing,qty:0,unit,tipo,tienda,minDate:ds,
-        portionQty: isProt?qty:0,   // grams per single portion
-        portionCount:0              // number of dish-portions
-      };
+      totals[key]={name:ing,qty:0,unit:unit||'unid',tipo:tipo||'Otro',
+        tienda:store,minDate:ds,portionQty:isProt?qty:0,portionCount:0};
     }
     totals[key].qty+=qty;
     if(isProt){
       totals[key].portionCount+=1;
-      // Keep portionQty from first protein occurrence
       if(!totals[key].portionQty)totals[key].portionQty=qty;
     }
     if(ds<totals[key].minDate)totals[key].minDate=ds;
   }
 
-  // All 28 days
+  // Every menu day
   Object.entries(S.menu).forEach(([ds,{almuerzo,cena}])=>{
     [almuerzo,cena].forEach(dish=>{
+      if(!dish)return;
       const rec=getReceta(dish);
       if(!rec)return;
       rec.forEach(([ing,qty,unit,tipo,tienda])=>addIng(ing,qty,unit,tipo,tienda,ds));
     });
   });
 
-  // Fixed weekly items
+  // Fixed base items (desayuno + condimentos)
   const sd=S.startDate||todayStr();
   FIJOS_BASE.forEach(([ing,qty,unit,tipo,tienda])=>addIng(ing,qty,unit,tipo,tienda,sd));
 
-  // Subtract inventory
-  // Subtract inventory ONLY if user has explicitly enabled it
-  if(subtractInv && S.useInventory){
+  // Subtract inventory ONLY when user explicitly enables it
+  if(subtractInv&&S.useInventory){
     Object.entries(S.inventory).forEach(([key,{qty:invQty}])=>{
       if(!totals[key]||!(invQty>0))return;
       if(isProteinCategory(totals[key].tipo)){
         totals[key].portionCount=Math.max(0,totals[key].portionCount-invQty);
         totals[key].qty=totals[key].portionCount*totals[key].portionQty;
-        // Don't delete — show as 0 so user knows it's covered
-        if(totals[key].portionCount<=0){totals[key].portionCount=0;totals[key].qty=0;totals[key].covered=true;}
+        if(totals[key].portionCount<=0)delete totals[key];
       } else {
         totals[key].qty=Math.max(0,totals[key].qty-invQty);
-        if(totals[key].qty<=0){totals[key].qty=0;totals[key].covered=true;}
+        if(totals[key].qty<=0)delete totals[key];
       }
     });
-    // Remove fully-covered items from display
-    Object.keys(totals).forEach(k=>{if(totals[k].covered)delete totals[k];});
   }
 
   return totals;
 }
 
-// Format quantity for market display
 function fmtQty(item){
-  const isProt=isProteinCategory(item.tipo);
-  if(isProt&&item.portionCount>0){
+  if(isProteinCategory(item.tipo)&&item.portionCount>0){
     const gpp=item.portionQty||Math.round(item.qty/(item.portionCount||1));
-    return`${Math.round(gpp)}g × ${item.portionCount} porc.`;
+    return`${Math.round(gpp)}g \u00d7 ${item.portionCount} porc.`;
   }
-  if(item.unit==='g'||item.unit==='ml'){
-    return`${Math.round(item.qty)}${item.unit}`;
-  }
+  if(item.unit==='g'||item.unit==='ml'){return`${Math.round(item.qty)}${item.unit}`;}
   const n=Math.round(item.qty*10)/10;
   return`${n%1===0?n:n.toFixed(1)} ${item.unit}`;
 }
 
 function renderMarket(){
-  if(!Object.keys(S.menu).length){document.getElementById('panel-mercado').innerHTML='<div class="notice">Genera el menú primero.</div>';return;}
+  if(!Object.keys(S.menu).length){
+    document.getElementById('panel-mercado').innerHTML='<div class="notice">Genera el menú primero.</div>';return;
+  }
 
   const totals=computeMarketTotals();
+  const allKeys=Object.keys(totals);
   const checked=Object.values(S.marketChecked).filter(Boolean).length;
-  const total=Object.keys(totals).length;
   const pd=S.purchaseDate||S.startDate||todayStr();
 
+  // Group: store → category → items (use dynamic ordering, never silently drop)
   const byStore={};
-  Object.entries(totals).forEach(([key,item])=>{
+  allKeys.forEach(key=>{
+    const item=totals[key];
     const store=item.tienda||'Otro';
-    if(!byStore[store])byStore[store]={};
     const cat=item.tipo||'Otro';
+    if(!byStore[store])byStore[store]={};
     if(!byStore[store][cat])byStore[store][cat]=[];
     byStore[store][cat].push({key,...item});
   });
 
-  const STORE_ORDER=['Plaza','Éxito','Santa Reyes','D1','Artesa','Otro'];
-  const CAT_ORDER=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Despensa','Otro'];
+  const STORE_PREF=['Plaza','Éxito','Santa Reyes','D1','Artesa'];
+  const CAT_PREF=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Despensa'];
+  // Dynamic: show ALL stores and categories found, preferred ones first
+  const stores=[...STORE_PREF,...Object.keys(byStore).filter(s=>!STORE_PREF.includes(s))];
+  function orderedCats(cats){
+    return [...CAT_PREF,...Object.keys(cats).filter(c=>!CAT_PREF.includes(c))];
+  }
 
   let html=`<div style="display:flex;align-items:center;gap:.9rem;margin-bottom:.9rem;flex-wrap:wrap">
     <div class="stat-row" style="flex:1;min-width:180px;margin:0">
-      <div class="stat"><div class="stat-lbl">Productos</div><div class="stat-val">${total}</div></div>
+      <div class="stat"><div class="stat-lbl">Productos</div><div class="stat-val">${allKeys.length}</div></div>
       <div class="stat"><div class="stat-lbl">Marcados</div><div class="stat-val" style="color:var(--grn)">${checked}</div></div>
     </div>
     <div class="cg">
@@ -755,18 +1390,18 @@ function renderMarket(){
       <button class="btn btn-sm btn-primary" onclick="printMarket()">Imprimir</button>
     </div>
   </div>
-  <div class="progress-bar"><div class="progress-fill" style="width:${total?Math.round(checked/total*100):0}%"></div></div>
-  <p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${total?Math.round(checked/total*100):0}% completado · Frescura calculada desde ${fmt(pd)} · Proteínas en gramos</p>`;
+  <div class="progress-bar"><div class="progress-fill" style="width:${allKeys.length?Math.round(checked/allKeys.length*100):0}%"></div></div>
+  <p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${Math.round(checked/(allKeys.length||1)*100)}% completado · Frescura desde ${fmt(pd)}</p>`;
 
-  STORE_ORDER.forEach(store=>{
+  stores.forEach(store=>{
     if(!byStore[store])return;
     const cats=byStore[store];
-    const itemCount=Object.values(cats).reduce((s,a)=>s+a.length,0);
-    const storeChecked=Object.values(cats).flat().filter(i=>S.marketChecked[i.key]).length;
+    const flat=Object.values(cats).flat();
+    const storeChecked=flat.filter(i=>S.marketChecked[i.key]).length;
 
-    html+=`<div class="mkt-store"><div class="mkt-store-hdr"><span class="mkt-store-name">${store}</span><span class="mkt-cnt">${storeChecked}/${itemCount}</span></div>`;
+    html+=`<div class="mkt-store"><div class="mkt-store-hdr"><span class="mkt-store-name">${store}</span><span class="mkt-cnt">${storeChecked}/${flat.length}</span></div>`;
 
-    CAT_ORDER.forEach(cat=>{
+    orderedCats(cats).forEach(cat=>{
       if(!cats[cat])return;
       const items=cats[cat].sort((a,b)=>{
         const la=freshnessInfo(a.minDate||pd).lag;
@@ -794,15 +1429,35 @@ function renderMarket(){
     <span class="fresh-badge fresh-ok">0–3 días</span>
     <span class="fresh-badge fresh-good">4–7 días</span>
     <span class="fresh-badge fresh-warn">8–14 días</span>
-    <span class="fresh-badge fresh-crit">&gt;14 días — comprar después</span>
+    <span class="fresh-badge fresh-crit">&gt;14 días</span>
   </div>`;
 
   document.getElementById('panel-mercado').innerHTML=html;
 }
 
 function toggleMarketItem(key){
-  S.marketChecked[key]=!S.marketChecked[key];
-  if(S.marketChecked[key]&&S.inventory[key])S.inventory[key].purchased=true;
+  const wasChecked=S.marketChecked[key];
+  S.marketChecked[key]=!wasChecked;
+
+  if(!wasChecked){
+    // Just purchased — add to inventory for the first time
+    const totals=computeMarketTotals(false);
+    const item=totals[key];
+    if(item){
+      const isP=isProteinCategory(item.tipo);
+      S.inventory[key]={
+        name:item.name,
+        qty: isP ? item.portionCount : Math.round(item.qty*10)/10,
+        unit: isP ? 'porciones' : item.unit,
+        tipo:item.tipo,
+        purchased:true
+      };
+    }
+  } else {
+    // Unchecked — remove from inventory
+    delete S.inventory[key];
+  }
+
   saveState();renderMarket();renderInventory();
 }
 function clearMarket(){S.marketChecked={};saveState();renderMarket();}
@@ -859,14 +1514,18 @@ function renderInventory(){
   Object.entries(inv).forEach(([key,item])=>{if(!byTipo[item.tipo])byTipo[item.tipo]=[];byTipo[item.tipo].push({key,...item});});
   const CAT_ORDER=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Despensa','Otro'];
 
-  html+=`<table class="inv-table"><thead><tr><th>Ingrediente</th><th>Categoría</th><th>Unidad</th><th>Qty en casa</th><th>Comprado</th><th></th></tr></thead><tbody>`;
+  html+=`<table class="inv-table"><thead><tr>
+    <th>Ingrediente</th><th>Categoría</th>
+    <th class="hide-mobile">Unidad</th>
+    <th>Qty en casa</th><th>Comprado</th><th></th>
+  </tr></thead><tbody>`;
   CAT_ORDER.forEach(cat=>{
     if(!byTipo[cat])return;
     byTipo[cat].sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
       html+=`<tr>
         <td>${item.name}</td>
         <td style="color:var(--txt3);font-size:.76rem">${item.tipo}</td>
-        <td style="color:var(--txt3);font-size:.76rem;font-family:monospace">${item.unit}</td>
+        <td class="hide-mobile" style="color:var(--txt3);font-size:.76rem;font-family:monospace">${item.unit}</td>
         <td><input class="inv-input" type="number" min="0" step="0.1" value="${item.qty||0}" onchange="updateInventory('${item.key}',this.value)"></td>
         <td style="text-align:center;color:${item.purchased?'var(--grn)':'var(--txt3)'}"><span style="font-size:.82rem">${item.purchased?'✓':'—'}</span></td>
         <td><button class="btn btn-sm btn-danger" onclick="removeInventory('${item.key}')">×</button></td>

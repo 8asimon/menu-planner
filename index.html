@@ -950,7 +950,10 @@ function generateAll(){
     aS:buildMixedPool(S.platos.almuerzo_semana,S.platosFit.almuerzo_semana,pct),
     aF:buildMixedPool(S.platos.almuerzo_finde,S.platosFit.almuerzo_finde,pct),
     cS:buildMixedPool(S.platos.cena_semana,S.platosFit.cena_semana,pct),
-    cF:buildMixedPool(S.platos.cena_finde,S.platosFit.cena_finde,pct)
+    cF:buildMixedPool(S.platos.cena_finde,S.platosFit.cena_finde,pct),
+    cFri:buildMixedPool(
+      [...new Set([...S.platos.cena_finde,...S.platos.almuerzo_finde])],
+      [...new Set([...S.platosFit.cena_finde,...S.platosFit.almuerzo_finde])],pct)
   };
 
   // Protein family rotation limits over 28 days
@@ -966,7 +969,7 @@ function generateAll(){
     const fri=isFriday(ds);
     const hol=hols.has(ds);
     const aPool=wknd?pools.aF:pools.aS;
-    const cPool=(wknd||fri)?pools.cF:pools.cS;
+    const cPool=(fri&&!wknd)?pools.cFri:wknd?pools.cF:pools.cS;
 
     // Smart picker: respects protein family limits and no immediate repeat
     function smartPick(pool,last,familyCounts,maxPerFamily){
@@ -1019,7 +1022,7 @@ function generateAll(){
     }
 
     const allFitA=[...S.platosFit.almuerzo_semana,...S.platosFit.almuerzo_finde];
-    const allFitC=[...S.platosFit.cena_semana,...S.platosFit.cena_finde];
+    const allFitC=[...S.platosFit.cena_semana,...S.platosFit.cena_finde,...S.platosFit.almuerzo_finde];
     lastA=almuerzo;lastC=cena;
     S.menu[ds]={almuerzo,cena,wknd,fri,holiday:hol,confirmed:false,
       fitAlm:allFitA.includes(almuerzo),fitCena:allFitC.includes(cena),
@@ -1594,7 +1597,8 @@ function openSwap(ds,slot){
       ?[...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde]
       :[...S.platos.almuerzo_semana,...S.platosFit.almuerzo_semana])
     :((data.wknd||data.fri)
-      ?[...S.platos.cena_finde,...S.platosFit.cena_finde]
+      ?[...S.platos.cena_finde,...S.platosFit.cena_finde,
+        ...((data.fri&&!data.wknd)?[...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde]:[])]
       :[...S.platos.cena_semana,...S.platosFit.cena_semana]);
   _swapPool=[...new Set(dayPool)];
 
@@ -1603,7 +1607,8 @@ function openSwap(ds,slot){
     ?[...S.platos.almuerzo_semana,...S.platos.almuerzo_finde,
       ...S.platosFit.almuerzo_semana,...S.platosFit.almuerzo_finde]
     :[...S.platos.cena_semana,...S.platos.cena_finde,
-      ...S.platosFit.cena_semana,...S.platosFit.cena_finde];
+      ...S.platosFit.cena_semana,...S.platosFit.cena_finde,
+      ...S.platos.almuerzo_finde,...S.platosFit.almuerzo_finde];
   _swapSearchPool=[...new Set(searchPool)];
 
   _swapExcluded=new Set([current]);
@@ -1716,7 +1721,7 @@ function doSwap(dish){
   } else {
     S.menu[_swapDs].cena=dish;
     S.menu[_swapDs].confCena=false;
-    S.menu[_swapDs].fitCena=[...S.platosFit.cena_semana,...S.platosFit.cena_finde].includes(dish);
+    S.menu[_swapDs].fitCena=[...S.platosFit.cena_semana,...S.platosFit.cena_finde,...S.platosFit.almuerzo_finde].includes(dish);
     S.menu[_swapDs].esSobra=false;
   }
   S.menu[_swapDs].confirmed=false;

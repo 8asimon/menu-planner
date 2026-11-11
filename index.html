@@ -693,7 +693,7 @@ const RECETAS_BASE={
 const FIJOS_BASE=[
   ['Leche',3,'L','Lácteos','Éxito'],['Café Molido',1,'paquete','Despensa','Éxito'],
   ['Pan Desayuno',2,'unid','Despensa','Artesa'],['Huevos',12,'unid','Huevos','Santa Reyes'],
-  ['Fruta Variada',1,'kg','Verdura','Plaza'],['Sal',1,'paquete','Despensa','Éxito'],
+  ['Piña',2,'unid','Fruta','Plaza'],['Mango',2,'unid','Fruta','Plaza'],['Bananos',1,'ramo','Fruta','Plaza'],['Sal',1,'paquete','Despensa','Éxito'],
   ['Aceite de oliva',1,'botella','Despensa','Éxito'],['Pimienta',1,'frasco','Despensa','Éxito'],
   ['Ajo',100,'g','Verdura','Plaza'],['Cebolla cabezona',3,'unid','Verdura','Plaza'],
   ['Tomate',4,'unid','Verdura','Plaza'],['Cebolla Larga',1,'manojo','Verdura','Plaza'],
@@ -725,9 +725,15 @@ Object.values(RECETAS_BASE).forEach(r=>r.forEach(l=>{if(String(l[0]).toLowerCase
 
 // Tienda por categoría: pollo, res, cerdo y huevos se compran en la carnicería
 const STORE_BY_TIPO={'Pollo':'Carnicería','Carne Res':'Carnicería','Carne Cerdo':'Carnicería','Huevos':'Carnicería'};
-function applyStoreRules(lines){(lines||[]).forEach(l=>{if(STORE_BY_TIPO[l[3]])l[4]=STORE_BY_TIPO[l[3]];});}
+const STORE_BY_NAME={'camaron':'Éxito','camarón':'Éxito'};
+function applyStoreRules(lines){(lines||[]).forEach(l=>{if(STORE_BY_TIPO[l[3]])l[4]=STORE_BY_TIPO[l[3]];const n=STORE_BY_NAME[String(l[0]).toLowerCase().trim()];if(n)l[4]=n;});}
+// Verduras siempre en unidades de compra (nunca gramos)
+const VEG_CONV={'habichuelines':{g:[1/200,'manojo'],taza:[1,'manojo']},'ajo':{g:[1/50,'cabeza'],unid:[0.1,'cabeza']},
+  'papa criolla':{g:[1/500,'libra'],unid:[20/500,'libra']},'apio':{rama:[1,'tallos']},'cebolla larga':{manojo:[5,'unid']},'yuca':{kg:[2,'unid']}};
+function vegToUnits(lines){(lines||[]).forEach(l=>{const c=VEG_CONV[String(l[0]).toLowerCase().trim()];if(c&&c[l[2]]){const[f,u]=c[l[2]];l[1]=Math.round(l[1]*f*100)/100;l[2]=u;}});}
 (function normalizeBase(){
   Object.values(RECETAS_BASE).forEach(applyStoreRules);applyStoreRules(FIJOS_BASE);
+  Object.values(RECETAS_BASE).forEach(vegToUnits);vegToUnits(FIJOS_BASE);
   for(const obj of[PLATOS_BASE,PLATOS_FIT])for(const k of Object.keys(obj))obj[k]=[...new Set(obj[k].map(fixName))];
   for(const k of Object.keys(RECETAS_BASE)){const f=fixName(k);if(f!==k){if(!RECETAS_BASE[f])RECETAS_BASE[f]=RECETAS_BASE[k];delete RECETAS_BASE[k];}}
 })();
@@ -764,6 +770,7 @@ var S={
 function migrateState(){
   S.recetas=Object.assign({},S.recetas);
   if(!S.migCarniceria){Object.values(S.recetas).forEach(applyStoreRules);S.migCarniceria=true;}
+  if(!S.migVeg3){Object.values(S.recetas).forEach(l=>{applyStoreRules(l);vegToUnits(l);});S.migVeg3=true;}
   if(!S.migCremaG){Object.entries(S.recetas).forEach(([n,r])=>cremaToGrams(n,r));S.migCremaG=true;}
   for(const k of Object.keys(S.recetas)){const f=fixName(k);if(f!==k){S.recetas[f]=S.recetas[k];delete S.recetas[k];}}
   Object.values(S.menu||{}).forEach(d=>{d.almuerzo=fixName(d.almuerzo);d.cena=fixName(d.cena);});
@@ -2102,6 +2109,35 @@ function computeMarketTotals(subtractInv=true,range=null,ckSuffix=''){
 
 function boughtFor(base){let n=0;Object.entries(S.marketBought||{}).forEach(([k,v])=>{if(k===base||k.startsWith(base+'@'))n+=v||0;});return n;}
 const VEG_TIPOS=new Set(['Verdura','Fruta']);
+// ── Exportar verduras y frutas a WhatsApp ──
+function waQty(it){
+  const parts=[[it.qty,it.unit],...Object.entries(it.extra||{}).map(([u,q])=>[q,u])].filter(([q,u])=>u!=='al gusto'&&q>0);
+  if(!parts.length)return 'al gusto';
+  const SG={libra:['libra','libras'],unid:['unidad','unidades'],cabeza:['cabeza','cabezas'],manojo:['manojo','manojos'],tallos:['tallo','tallos'],taza:['taza','tazas'],bolsa:['bolsa','bolsas'],canasta:['canasta','canastas'],ramo:['ramo','ramos'],trozo:['trozo','trozos']};
+  return parts.map(([q,u])=>{const n=u==='taza'?Math.round(q*10)/10:u==='libra'?Math.ceil(q*2-0.05)/2:Math.ceil(q-0.05);const w=SG[u]||[u,u];return `${String(n).replace('.',',')} ${n===1?w[0]:w[1]}`;}).join(' + ');
+}
+function vegWhatsappText(){
+  const items=Object.entries(getMarketItems()).filter(([k,it])=>VEG_TIPOS.has(it.tipo)&&!S.marketChecked[k]).map(([,it])=>it);
+  const sec=(tipo,title)=>{const l=items.filter(i=>i.tipo===tipo).sort((a,b)=>a.name.localeCompare(b.name,'es'));return l.length?`${title}:\n`+l.map(i=>`${i.name} - ${waQty(i)}`).join('\n'):'';};
+  return [sec('Verdura','Verduras'),sec('Fruta','Frutas')].filter(Boolean).join('\n\n');
+}
+function openWhatsappExport(){
+  const txt=vegWhatsappText();
+  const Q=quincenas(),vv=S.vegView||'mes';
+  const lbl=vv==='mes'?'mes completo':`${vv==='q1'?'1ª':'2ª'} quincena (${fmt(Q[vv].from)}–${fmt(Q[vv].to)})`;
+  openModal(`<h2>📲 Lista de verduras y frutas</h2>
+    <p style="font-size:.76rem;color:var(--txt3);margin-bottom:.6rem">Vista: ${lbl}. No incluye lo que ya marcaste como comprado.</p>
+    ${txt?`<textarea id="wa-text" readonly style="width:100%;min-height:260px;font-family:inherit;font-size:.84rem;padding:.6rem;border:.5px solid var(--brd2);border-radius:var(--r);background:var(--bg);color:var(--txt)">${esc(txt)}</textarea>`:'<div class="notice">No hay verduras ni frutas pendientes en esta vista.</div>'}
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal()">Cerrar</button>
+      ${txt?`<button class="btn btn-sm" onclick="copyWhatsapp()">Copiar</button><button class="btn btn-sm btn-primary" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('wa-text').value),'_blank')">Abrir WhatsApp</button>`:''}
+    </div>`);
+}
+async function copyWhatsapp(){
+  const ta=document.getElementById('wa-text');if(!ta)return;
+  try{await navigator.clipboard.writeText(ta.value);}catch(e){ta.select();document.execCommand('copy');}
+  toast('Lista copiada');
+}
 // Lista que se muestra: todo mensual, salvo verduras/frutas si se eligió una quincena.
 // Las llaves de verduras por quincena llevan sufijo @q1 / @q2 (se marcan por separado).
 function getMarketItems(){
@@ -2137,8 +2173,8 @@ function fmtQty(item){
   const q=item.qty;
   if(item.unit==='g'){return q>=1000?`${(Math.round(q/100)/10).toString().replace('.',',')} kg`:`${Math.round(q)} g`;}
   if(item.unit==='ml'){return q>=1000?`${(Math.round(q/100)/10).toString().replace('.',',')} L`:`${Math.round(q)} ml`;}
-  const n=item.unit==='unid'?Math.ceil(q-0.05):Math.round(q*10)/10;
-  const PL={taza:'tazas',pote:'potes',rama:'ramas',lata:'latas',paquete:'paquetes',bolsa:'bolsas',manojo:'manojos',botella:'botellas',trozo:'trozos',frasco:'frascos',canasta:'canastas',bloque:'bloques'};
+  const n=item.unit==='libra'?Math.ceil(q*2-0.05)/2:(item.unit==='unid'||(VEG_TIPOS.has(item.tipo)&&item.unit!=='taza'))?Math.ceil(q-0.05):Math.round(q*10)/10;
+  const PL={libra:'libras',cabeza:'cabezas',ramo:'ramos',taza:'tazas',pote:'potes',rama:'ramas',lata:'latas',paquete:'paquetes',bolsa:'bolsas',manojo:'manojos',botella:'botellas',trozo:'trozos',frasco:'frascos',canasta:'canastas',bloque:'bloques'};
   const u=n>1&&PL[item.unit]?PL[item.unit]:item.unit;
   return`${n%1===0?n:n.toFixed(1).replace('.',',')} ${u}`;
 }
@@ -2172,7 +2208,8 @@ function renderMarket(){
   <div class="ctrl-bar" style="align-items:center;padding:.6rem 1rem;gap:.5rem">
     <span style="font-size:.76rem;color:var(--txt2)">🥬 Verduras y frutas:</span>
     <div class="seg">${[['mes','Mes completo'],['q1',`1ª quincena (${fmt(Q.q1.from)}–${fmt(Q.q1.to)})`],['q2',`2ª quincena (${fmt(Q.q2.from)}–${fmt(Q.q2.to)})`]].map(([k,l])=>`<button class="${vv===k?'active':''}" onclick="setVegView('${k}')">${l}</button>`).join('')}</div>
-    <span style="font-size:.68rem;color:var(--txt3)">Proteínas y despensa siempre muestran el mes completo.</span>
+    <button class="btn btn-sm btn-primary" onclick="openWhatsappExport()" style="margin-left:auto">📲 Enviar por WhatsApp</button>
+    <span style="font-size:.68rem;color:var(--txt3);width:100%">Proteínas y despensa siempre muestran el mes completo.</span>
   </div>
   <div class="progress-bar"><div class="progress-fill" style="width:${allKeys.length?Math.round(checked/allKeys.length*100):0}%"></div></div>
   <p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${checked}/${allKeys.length} comprados · toca un producto al echarlo al carrito (pasa al inventario)</p>`;
@@ -2437,7 +2474,7 @@ function inferQty(ingName,unit,tipo,recipeName){
 
 let _recFilter='all',_recQuery='',_ed=null;
 const TIPO_OPTS=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Fruta','Despensa','Congelados','Otro'];
-const UNIT_OPTS=['g','ml','unid','kg','L','taza','lata','latas','pote','paquete','bolsa','manojo','rama','trozo','tajadas','tallos','botella','frasco','al gusto','media pechuga en mariposa','media pechuga sin porcionar','filetes','contramuslos','bifes de 200 g','porciones de lomo en mariposa','cañón de lomo de 500 g'];
+const UNIT_OPTS=['g','ml','unid','kg','L','taza','lata','latas','pote','paquete','bolsa','manojo','rama','trozo','tajadas','tallos','botella','frasco','al gusto','media pechuga en mariposa','media pechuga sin porcionar','filetes','contramuslos','libra','cabeza','bifes de 200 g','porciones de lomo en mariposa','cañón de lomo de 500 g'];
 function dishPools(name){return CATS.filter(c=>(S.platos[c]||[]).includes(name)||(S.platosFit[c]||[]).includes(name));}
 function allDishNames(){
   const set=new Set([...Object.keys(RECETAS_BASE),...Object.keys(S.recetas)]);

@@ -1905,7 +1905,7 @@ function openSwap(ds,slot){
     <div id="sugg-container" style="margin-bottom:.4rem"></div>
     <div class="sugg-chip" style="border-style:dashed;margin:0 0 .9rem 0" onclick="doSwap(SPECIAL_DISH)">${SPECIAL_DISH}</div>
     <div class="section-ttl">Buscar en todos los platos <span style="font-size:.65rem;color:var(--txt3);text-transform:none;letter-spacing:0;font-family:inherit">(${_swapSearchPool.length} disponibles)</span></div>
-    <input class="search-input" type="text" id="swap-search" placeholder="ej: pollo, cerdo, pasta..." oninput="filterSwap(this.value)">
+    <input class="search-input" type="text" id="swap-search" placeholder="Plato o proteína: carne molida, pollo, pasta..." oninput="filterSwap(this.value)">
     <select class="search-input" id="swap-select" onchange="pickFromSelect(this)">${buildSwapSelectOptions()}</select>
     <div id="swap-results" class="search-results" style="display:none"></div>
     <div class="modal-footer">
@@ -1973,13 +1973,26 @@ function pickSuggestion(idx){
   if(dish)doSwap(dish);
 }
 
+function dishProteins(d){
+  const lines=[...(getReceta(d)||[]),...(isSobraDish(d)?(sobraProteinLines(d)||[]):[])];
+  return [...new Set(lines.filter(l=>isProteinCategory(l[3])||/^(at[uú]n|jam[oó]n|tocineta|huevos?)$/i.test(String(l[0]).split(' ')[0])).map(l=>l[0]))];
+}
+function dishProteinText(d){const f=getDishFamily(d);return dishProteins(d).join(' ')+' '+(f!=='Otro'?FAMILY_LABEL[f]||'':'');}
 function filterSwap(query){
   const res=document.getElementById('swap-results');
   if(!query.trim()){res.style.display='none';return;}
   const q=norm(query);
   // Search across ALL dishes of this meal type (sin tildes, todas las palabras)
   const words=q.split(/\s+/).filter(Boolean);
-  const matches=_swapSearchPool.filter(d=>{const n=norm(d);return words.every(w=>n.includes(w));}).slice(0,30);
+  // Busca por nombre del plato o por la proteína que usa (ej. "carne molida", "pollo", "cerdo")
+  // Coincidencia por inicio de palabra (así "pollo" no encuentra "repollo")
+  const wordsOf=t=>norm(t).split(/[^a-z0-9ñ]+/).filter(Boolean);
+  const hit=(toks,w)=>toks.some(x=>x.startsWith(w));
+  const matches=_swapSearchPool.filter(d=>{
+    if(words.every(w=>hit(wordsOf(d),w)))return true;
+    const pt=dishProteinText(d);
+    return words.length>1?(' '+wordsOf(pt).join(' ')+' ').includes(' '+words.join(' ')):hit(wordsOf(pt),q);
+  });
   if(!matches.length){
     res.innerHTML=`<div style="padding:.5rem .75rem;font-size:.78rem;color:var(--txt3)">Sin resultados para "${esc(query)}". Puedes crear el plato en 📖 Recetas.</div>`;
     res.style.display='block';return;
@@ -1987,7 +2000,9 @@ function filterSwap(query){
   res.innerHTML=matches.map(d=>{
     // Mark if this dish is outside the day's normal pool (semana vs finde)
     const inDayPool=_swapPool.includes(d);
-    const note=inDayPool?'':' <span style="font-size:.62rem;color:var(--amb);font-family:monospace">otro tipo</span>';
+    const prots=dishProteins(d);
+    const byProt=!words.every(w=>wordsOf(d).some(x=>x.startsWith(w)))&&prots.length;
+    const note=(byProt?` <span style="font-size:.66rem;color:var(--grn-d)">· ${esc(prots.join(', '))}</span>`:'')+(inDayPool?'':' <span style="font-size:.62rem;color:var(--amb);font-family:monospace">otro tipo</span>');
     return`<div class="search-result-item" data-dish="${encodeURIComponent(d)}" onclick="pickResult(this)">${esc(d)}${note}</div>`;
   }).join('');
   res.style.display='block';

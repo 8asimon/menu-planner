@@ -505,6 +505,7 @@ const PROTEIN_FAMILY={
 const FAMILY_LABEL={Pescado:'Pescado',Pollo:'Pollo',CerdoAsado:'Cerdo asado',LomoCerdo:'Cerdo',Res:'Res',Atun:'Atún',Otro:'Sin proteína'};
 const _famIdx=Object.entries(PROTEIN_FAMILY).map(([f,ps])=>[f,ps.map(p=>p.toLowerCase())]);
 function getDishFamily(dish){
+  if(is54(dish))return fam54(dish);
   const d=(dish||'').toLowerCase();
   for(const[fam,ps]of _famIdx){ if(ps.some(p=>d.startsWith(p)))return fam; }
   return 'Otro';
@@ -763,6 +764,7 @@ var S={
   hideChecked:false,
   prepMode:'lun',
   repeatFortnight:false,
+  weekModes:{},
   vegView:'mes',
   mktCollapsed:{},
   updatedAt:0
@@ -775,7 +777,7 @@ function migrateState(){
   if(!S.migCremaG){Object.entries(S.recetas).forEach(([n,r])=>cremaToGrams(n,r));S.migCremaG=true;}
   for(const k of Object.keys(S.recetas)){const f=fixName(k);if(f!==k){S.recetas[f]=S.recetas[k];delete S.recetas[k];}}
   Object.values(S.menu||{}).forEach(d=>{d.almuerzo=fixName(d.almuerzo);d.cena=fixName(d.cena);});
-  for(const k of['excluded','excludedFit','marketBought','mktCollapsed','marketChecked','inventory'])if(!S[k]||typeof S[k]!=='object')S[k]={};
+  for(const k of['excluded','excludedFit','marketBought','mktCollapsed','marketChecked','inventory','weekModes'])if(!S[k]||typeof S[k]!=='object')S[k]={};
   S.platos=S.platos||{};S.platosFit=S.platosFit||{};
   Object.keys(S.marketChecked).forEach(k=>{if(S.marketChecked[k]&&S.marketBought[k]==null&&S.inventory[k])S.marketBought[k]=S.inventory[k].qty;});
   mergePools();
@@ -1044,8 +1046,21 @@ function resetAll(){
 }
 
 const SPECIAL_DISH='🍽️ Comida especial (sin lista)';
+// ═══ Plan 54D (Recetas Saludables) ═══
+// Platos 54D = módulos del Recetario Fit. Almuerzo = Proteína + Verdura (+ Carbohidrato en el resto del plan)
+const D54={"mods":{"Pechuga de pollo a la plancha":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Limón",1,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Orégano",0,"al gusto","Despensa","Éxito"],["Tomillo",0,"al gusto","Despensa","Éxito"]],"Pollo al curry de yogur":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Yogur griego 0 %",0.5,"taza","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Curry",0,"al gusto","Despensa","Éxito"],["Aceite de coco",15,"ml","Despensa","Éxito"],["Cilantro",0.25,"manojo","Verdura","Plaza"]],"Pollo guisado con verduras":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Pimentón",1,"unid","Verdura","Plaza"],["Calabacín",1,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"],["Comino",0,"al gusto","Despensa","Éxito"]],"Pollo desmechado":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cebolla Larga",2,"unid","Verdura","Plaza"],["Apio",1,"tallos","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"]],"Pescado blanco en papillote":[["Pescado blanco",2,"filetes","Pescado","Éxito"],["Tomate",1,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Limón",1,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Perejil",0.25,"manojo","Verdura","Plaza"]],"Pescado a la plancha con salsa verde":[["Pescado blanco",2,"filetes","Pescado","Éxito"],["Cilantro",0.5,"manojo","Verdura","Plaza"],["Perejil",0.5,"manojo","Verdura","Plaza"],["Ajo",0.1,"cabeza","Verdura","Plaza"],["Limón",2,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"]],"Camarones al ajillo":[["Camaron",200,"g","Pescado","Éxito"],["Ajo",0.4,"cabeza","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Limón",1,"unid","Verdura","Plaza"],["Ají seco",0,"al gusto","Despensa","Éxito"],["Perejil",0.25,"manojo","Verdura","Plaza"]],"Atún fresco sellado a la pimienta":[["Atún fresco",200,"g","Pescado","Éxito"],["Pimienta negra entera",0,"al gusto","Despensa","Éxito"],["Limón",1,"unid","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Molde de atún y claras":[["Atún",2.5,"latas","Despensa","Éxito"],["Huevos",6,"unid","Huevos","Carnicería"],["Huevos",1,"unid","Huevos","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Espinaca",0.25,"bolsa","Verdura","Plaza"],["Orégano",0,"al gusto","Despensa","Éxito"]],"Lomo de cerdo con mostaza y hierbas":[["Lomo de Cerdo",200,"g","Carne Cerdo","Carnicería"],["Mostaza cero calorías",0,"al gusto","Despensa","Éxito"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Limón",1,"unid","Verdura","Plaza"],["Romero",0,"al gusto","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Lomo de res con chimichurri":[["Lomo de Res",200,"g","Carne Res","Carnicería"],["Perejil",0.5,"manojo","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Orégano",0,"al gusto","Despensa","Éxito"],["Limón",1,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Ají seco",0,"al gusto","Despensa","Éxito"]],"Salmón al horno con limón":[["Salmón",200,"g","Pescado","Éxito"],["Limón",1,"unid","Verdura","Plaza"],["Perejil",0.25,"manojo","Verdura","Plaza"],["Ajo",0.1,"cabeza","Verdura","Plaza"]],"Ensalada verde con vinagreta de limón":[["Lechuga",1,"unid","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Rábanos",4,"unid","Verdura","Plaza"],["Limón",1,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Mostaza cero calorías",0,"al gusto","Despensa","Éxito"]],"Brócoli y coliflor asados":[["Brocoli",1,"unid","Verdura","Plaza"],["Coliflor",0.5,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Paprika",0,"al gusto","Despensa","Éxito"]],"Puré de coliflor":[["Coliflor",1,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Yogur griego 0 %",0.125,"taza","Lácteos","Éxito"],["Nuez moscada",0,"al gusto","Despensa","Éxito"]],"Arroz de coliflor":[["Coliflor",1,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Ajo",0.1,"cabeza","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Calabacín y berenjena a la plancha":[["Calabacín",1,"unid","Verdura","Plaza"],["Berenjena",1,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Limón",0.5,"unid","Verdura","Plaza"],["Orégano",0,"al gusto","Despensa","Éxito"]],"Espárragos salteados":[["Esparragos",1,"manojo","Verdura","Plaza"],["Ajo",0.1,"cabeza","Verdura","Plaza"],["Limón",0.5,"unid","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Espinacas y acelgas salteadas":[["Espinaca",1,"bolsa","Verdura","Plaza"],["Acelga",0.5,"manojo","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Limón",0.5,"unid","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Vegetales asados":[["Pimentón",1,"unid","Verdura","Plaza"],["Pimentón",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Calabacín",1,"unid","Verdura","Plaza"],["Berenjena",0.5,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Tomillo",0,"al gusto","Despensa","Éxito"]],"Ensalada de repollo con yogur":[["Repollo blanco",0.25,"unid","Verdura","Plaza"],["Repollo Morado",0.25,"unid","Verdura","Plaza"],["Cebolla Larga",1,"unid","Verdura","Plaza"],["Yogur griego 0 %",0.5,"taza","Lácteos","Éxito"],["Limón",1,"unid","Verdura","Plaza"],["Mostaza cero calorías",0,"al gusto","Despensa","Éxito"]],"Ensalada de pepino, tomate y cilantro":[["Pepino",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Limón",1,"unid","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Tomates al horno":[["Tomate",3,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"],["Tomillo",0,"al gusto","Verdura","Plaza"]],"Arroz integral":[["Arroz integral",0.5,"taza","Despensa","Éxito"],["Cebolla cabezona",0.25,"unid","Verdura","Plaza"],["Ajo",0.1,"cabeza","Verdura","Plaza"]],"Quinoa con verduras":[["Quinoa",0.5,"taza","Despensa","Éxito"],["Pimentón",0.5,"unid","Verdura","Plaza"],["Cebolla Larga",1,"unid","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Limón",0.5,"unid","Verdura","Plaza"]],"Papa criolla al horno":[["Papa criolla",0.75,"libra","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"],["Romero",0,"al gusto","Verdura","Plaza"]],"Papas al horno con romero":[["Papa Sabanera",2,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Romero",0,"al gusto","Despensa","Éxito"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Yuca al horno":[["Yuca",0.5,"unid","Verdura","Plaza"],["Ajo",0.1,"cabeza","Verdura","Plaza"],["Limón",0.5,"unid","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"]],"Plátano maduro al horno":[["Plátano Maduro",1,"unid","Verdura","Plaza"],["Canela",0,"al gusto","Despensa","Éxito"]],"Lentejas guisadas":[["Lentejas",0.5,"taza","Despensa","Éxito"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Pimentón",0.5,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Comino",0,"al gusto","Despensa","Éxito"]],"Tortillas de maíz asadas":[["Tortillas de maíz 100 %",6,"unid","Despensa","Éxito"]],"Bowl de pollo, quinoa y aguacate":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Quinoa",0.5,"taza","Despensa","Éxito"],["Aguacate",1,"unid","Verdura","Plaza"],["Tomates Cherry",0.5,"canasta","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Lechuga",0.5,"unid","Verdura","Plaza"],["Limón",2,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"]],"Arroz integral atollado de pollo":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Arroz integral",0.5,"taza","Despensa","Éxito"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Pimentón",0.5,"unid","Verdura","Plaza"],["Habichuelines",0.5,"manojo","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Comino",0,"al gusto","Despensa","Éxito"]],"Lentejas con lomo de cerdo":[["Lomo de Cerdo",200,"g","Carne Cerdo","Carnicería"],["Lentejas",0.5,"taza","Despensa","Éxito"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Pimentón",0.5,"unid","Verdura","Plaza"],["Ajo",0.3,"cabeza","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Comino",0,"al gusto","Despensa","Éxito"]],"Tacos de pescado con pico de gallo":[["Pescado blanco",2,"filetes","Pescado","Éxito"],["Tortillas de maíz 100 %",6,"unid","Despensa","Éxito"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla morada",0.5,"unid","Verdura","Plaza"],["Cilantro",0.5,"manojo","Verdura","Plaza"],["Limón",2,"unid","Verdura","Plaza"],["Repollo Morado",0.25,"unid","Verdura","Plaza"],["Aguacate",1,"unid","Verdura","Plaza"],["Paprika",0,"al gusto","Despensa","Éxito"],["Comino",0,"al gusto","Despensa","Éxito"]],"Parmentier de coliflor":[["Lomo de res molido",200,"g","Carne Res","Carnicería"],["Coliflor",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Zanahoria",0.5,"unid","Verdura","Plaza"],["Queso cottage 0 %",0.5,"taza","Lácteos","Éxito"],["Yogur griego 0 %",0.125,"taza","Lácteos","Éxito"],["Nuez moscada",0,"al gusto","Despensa","Éxito"]],"Musaka de berenjena y plátano":[["Lomo de res molido",200,"g","Carne Res","Carnicería"],["Berenjena",2,"unid","Verdura","Plaza"],["Plátano Maduro",1,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Queso ricotta light",0.5,"taza","Lácteos","Éxito"],["Canela",0,"al gusto","Despensa","Éxito"],["Comino",0,"al gusto","Despensa","Éxito"]],"Tortilla de claras con espinaca y champiñones":[["Huevos",8,"unid","Huevos","Carnicería"],["Huevos",1,"unid","Huevos","Carnicería"],["Espinaca",0.25,"bolsa","Verdura","Plaza"],["Champiñones",0.5,"bandeja","Verdura","Plaza"],["Pimentón",0.5,"unid","Verdura","Plaza"],["Aceite de oliva",5,"ml","Despensa","Éxito"],["Cúrcuma",0,"al gusto","Despensa","Éxito"],["Orégano",0,"al gusto","Despensa","Éxito"]],"Ensalada de atún":[["Atún",2.5,"latas","Despensa","Éxito"],["Lechuga",1,"unid","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Tomates Cherry",0.5,"canasta","Verdura","Plaza"],["Limón",1,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"]],"Ceviche de camarón":[["Camaron",200,"g","Pescado","Éxito"],["Limón",4,"unid","Verdura","Plaza"],["Cebolla morada",0.5,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Cilantro",0.5,"manojo","Verdura","Plaza"],["Aguacate",0.5,"unid","Verdura","Plaza"],["Ají",0,"al gusto","Verdura","Plaza"]],"Wraps de lechuga con pollo y pico de gallo":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cogollos",2,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla morada",0.5,"unid","Verdura","Plaza"],["Cilantro",0.25,"manojo","Verdura","Plaza"],["Limón",2,"unid","Verdura","Plaza"],["Aguacate",0.5,"unid","Verdura","Plaza"]],"Pescado al horno con calabacín y coliflor":[["Pescado blanco",2,"filetes","Pescado","Éxito"],["Calabacín",1,"unid","Verdura","Plaza"],["Coliflor",0.5,"unid","Verdura","Plaza"],["Ajo",0.2,"cabeza","Verdura","Plaza"],["Aceite de coco",10,"ml","Despensa","Éxito"],["Rábanos",4,"unid","Verdura","Plaza"],["Lechuga",0.5,"unid","Verdura","Plaza"]],"Poke de atún con arroz de coliflor":[["Atún fresco",200,"g","Pescado","Éxito"],["Coliflor",0.5,"unid","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Aguacate",1,"unid","Verdura","Plaza"],["Cebolla Larga",1,"unid","Verdura","Plaza"],["Jengibre",1,"trozo","Verdura","Plaza"],["Limón",2,"unid","Verdura","Plaza"],["Ajonjolí",0,"al gusto","Despensa","Éxito"]],"Ensalada griega con pollo":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Pepino",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla morada",0.5,"unid","Verdura","Plaza"],["Aceitunas",25,"unid","Despensa","Éxito"],["Queso panela bajo en grasa",150,"g","Lácteos","Éxito"],["Limón",1,"unid","Verdura","Plaza"],["Aceite de oliva",15,"ml","Despensa","Éxito"],["Orégano",0,"al gusto","Despensa","Éxito"]]},"meta":{"P":[{"n":"Pechuga de pollo a la plancha","s1":true},{"n":"Pollo al curry de yogur","s1":true},{"n":"Pollo guisado con verduras","s1":true},{"n":"Pollo desmechado","s1":true},{"n":"Pescado blanco en papillote","s1":true},{"n":"Pescado a la plancha con salsa verde","s1":true},{"n":"Camarones al ajillo","s1":true},{"n":"Atún fresco sellado a la pimienta","s1":true},{"n":"Molde de atún y claras","s1":true},{"n":"Lomo de cerdo con mostaza y hierbas","s1":false},{"n":"Lomo de res con chimichurri","s1":false},{"n":"Salmón al horno con limón","s1":false}],"V":[{"n":"Ensalada verde con vinagreta de limón","s1":true},{"n":"Brócoli y coliflor asados","s1":true},{"n":"Puré de coliflor","s1":true},{"n":"Arroz de coliflor","s1":true},{"n":"Calabacín y berenjena a la plancha","s1":true},{"n":"Espárragos salteados","s1":true},{"n":"Espinacas y acelgas salteadas","s1":true},{"n":"Vegetales asados","s1":true},{"n":"Ensalada de repollo con yogur","s1":true},{"n":"Ensalada de pepino, tomate y cilantro","s1":true},{"n":"Tomates al horno","s1":true}],"C":[{"n":"Arroz integral","s1":false},{"n":"Quinoa con verduras","s1":false},{"n":"Papa criolla al horno","s1":false},{"n":"Papas al horno con romero","s1":false},{"n":"Yuca al horno","s1":false},{"n":"Plátano maduro al horno","s1":false},{"n":"Lentejas guisadas","s1":false},{"n":"Tortillas de maíz asadas","s1":false}],"X":[{"n":"Bowl de pollo, quinoa y aguacate","s1":false},{"n":"Arroz integral atollado de pollo","s1":false},{"n":"Lentejas con lomo de cerdo","s1":false},{"n":"Tacos de pescado con pico de gallo","s1":false},{"n":"Parmentier de coliflor","s1":false},{"n":"Musaka de berenjena y plátano","s1":false}],"N":[{"n":"Tortilla de claras con espinaca y champiñones","s1":true},{"n":"Ensalada de atún","s1":true},{"n":"Ceviche de camarón","s1":true},{"n":"Wraps de lechuga con pollo y pico de gallo","s1":true},{"n":"Pescado al horno con calabacín y coliflor","s1":true},{"n":"Poke de atún con arroz de coliflor","s1":false},{"n":"Ensalada griega con pollo","s1":false}]}};
+const D54_PREFIX='54D · ';
+const WEEK_MODES={normal:'Semana normal','54d1':'54D · Semana 1','54dr':'54D · Resto del plan'};
+function is54(n){return String(n||'').startsWith(D54_PREFIX);}
+function parts54(n){return String(n).slice(D54_PREFIX.length).split(' + ');}
+function receta54(n){const ps=parts54(n);if(!ps.length||!ps.every(x=>D54.mods[x]))return null;return ps.flatMap(x=>D54.mods[x].map(l=>[...l]));}
+const FAM54_ING={'pechuga de pollo':'Pollo','pescado blanco':'Pescado','camaron':'Pescado','salmón':'Pescado','atún fresco':'Atun','atún':'Atun','lomo de cerdo':'LomoCerdo','lomo de res':'Res','lomo de res molido':'Res'};
+function fam54(n){const r=receta54(n)||[];for(const l of r){const f=FAM54_ING[String(l[0]).toLowerCase()];if(f)return f;}return 'Otro';}
+function getWeekMode(ds){return (S.weekModes||{})[mondayOf(ds)]||'normal';}
+
 function getReceta(name){
   if(name===SPECIAL_DISH)return null;
+  if(is54(name))return S.recetas[name]||receta54(name);
   return S.recetas[name]||RECETAS_BASE[name]||null;}
 
 // ═══════════════════════════════════════════════════════════════
@@ -1106,7 +1121,30 @@ function pickFromMixed(pool,last){
   return pickRandom((useFit&&pool.fit.length)?pool.fit:pool.normal,last);
 }
 
-function isFitDish(d){return CATS.some(c=>(S.platosFit[c]||[]).includes(d));}
+function isFitDish(d){return is54(d)||CATS.some(c=>(S.platosFit[c]||[]).includes(d));}
+
+// Elige un plato 54D con variedad (proteína/verdura/carbohidrato menos usados)
+function pick54(slot,mode,st){
+  const s1=mode==='54d1';
+  const P=D54.meta.P.filter(x=>!s1||x.s1).map(x=>x.n),V=D54.meta.V.map(x=>x.n),C=D54.meta.C.map(x=>x.n);
+  const X=D54.meta.X.map(x=>x.n),Nn=D54.meta.N.filter(x=>!s1||x.s1).map(x=>x.n);
+  const least=(arr,avoid=[])=>{let c=arr.filter(a=>!avoid.includes(a));if(!c.length)c=arr;const m=Math.min(...c.map(a=>st.used[a]||0));c=c.filter(a=>(st.used[a]||0)===m);return c[Math.floor(Math.random()*c.length)];};
+  const take=a=>{st.used[a]=(st.used[a]||0)+1;return a;};
+  if(slot==='C'&&Nn.length&&Math.random()<0.6){const n=take(least(Nn,[st.lastC]));st.lastC=n;return D54_PREFIX+n;}
+  if(slot==='A'&&!s1&&Math.random()<0.25){return D54_PREFIX+take(least(X));}
+  const pr=take(least(P,[st.lastP,st.lastA]));const v=take(least(V,[st.lastV]));st.lastV=v;
+  if(slot==='A')st.lastA=pr;else st.lastP=pr;
+  if(slot==='A'&&!s1)return D54_PREFIX+pr+' + '+v+' + '+take(least(C,[st.lastCarb]));
+  return D54_PREFIX+pr+' + '+v;
+}
+function setWeekMode(idx,mode){
+  const wk=getWeeks()[idx];if(!wk)return;
+  S.weekModes=S.weekModes||{};
+  const key=mondayOf(wk[0]);
+  if(mode==='normal')delete S.weekModes[key];else S.weekModes[key]=mode;
+  generateAll({onlyMonday:key});
+  toast(`${weekName(idx)}: ${WEEK_MODES[mode]} · se propusieron de nuevo los platos no aprobados`,3500);
+}
 
 // Elige un plato del pool respetando: no repetir, límites de proteína, % fit,
 // sobrantes en casa y variedad (menos usados / no usados recientemente)
@@ -1167,21 +1205,24 @@ function generateAll(opts={}){
   const note=(slot,d,i)=>{usedCount[slot+':'+d]=(usedCount[slot+':'+d]||0)+1;lastUsed[slot+':'+d]=i;};
 
   const menu={};let lastA='',lastC='',sobraWeek=false,kept=0;
+  const st54={used:{},lastP:'',lastA:'',lastC:'',lastV:'',lastCarb:''};
   for(let i=0;i<N;i++){
     const ds=addDays(S.startDate,i);
     if(dayOfWeek(ds)===1)sobraWeek=false; // semanas lun–dom: máx 1 cena de sobras
     const wknd=isWeekend(ds,hols),fri=isFriday(ds),hol=hols.has(ds);
     const old=prev[ds];
-    const kA=keep&&old?.confAlm&&old.almuerzo, kC=keep&&old?.confCena&&old.cena;
+    const outside=opts.onlyMonday&&mondayOf(ds)!==opts.onlyMonday&&old;
+    const kA=(outside||keep&&old?.confAlm)&&old.almuerzo, kC=(outside||keep&&old?.confCena)&&old.cena;
+    const mode=getWeekMode(ds);
     const aPool=wknd?pools.aF:pools.aS;
     const cPool=(fri&&!wknd)?pools.cFri:wknd?pools.cF:pools.cS;
 
     // Repetir quincena: semana 3 = semana 1, semana 4 = semana 2 (si el tipo de día coincide)
     const src=rep&&ds>=repFrom?menu[addDays(ds,-14)]:null;
-    const same=!!src&&src.wknd===wknd&&!!src.fri===!!fri;
+    const same=!!src&&src.wknd===wknd&&!!src.fri===!!fri&&getWeekMode(addDays(ds,-14))===mode;
     const cpA=same&&src.almuerzo!==SPECIAL_DISH?src.almuerzo:null;
     const cpC=same&&src.cena!==SPECIAL_DISH?src.cena:null;
-    const almuerzo=kA?old.almuerzo:cpA?cpA:smartPick(aPool,lastA,{i,slot:'A',familyCounts,maxFamily,usedCount,lastUsed,invProt:useInv});
+    const almuerzo=kA?old.almuerzo:cpA?cpA:mode!=='normal'?pick54('A',mode,st54):smartPick(aPool,lastA,{i,slot:'A',familyCounts,maxFamily,usedCount,lastUsed,invProt:useInv});
     const famA=getDishFamily(almuerzo);
     familyCounts[famA]=(familyCounts[famA]||0)+1;
     consume(almuerzo);
@@ -1189,6 +1230,7 @@ function generateAll(opts={}){
     let cena;
     if(kC){cena=old.cena;}
     else if(cpC){cena=cpC;}
+    else if(mode!=='normal'){cena=pick54('C',mode,st54);}
     else{
       const sobra=(wknd||fri)?getCenaFromSobras(almuerzo):null;
       if(sobra&&!sobraWeek&&Math.random()<0.25){cena=sobra;}
@@ -1199,9 +1241,9 @@ function generateAll(opts={}){
     consume(cena);
     note('A',almuerzo,i);note('C',cena,i);
     lastA=almuerzo;lastC=cena;
-    if(kA)kept++;if(kC)kept++;
+    if(!outside){if(kA)kept++;if(kC)kept++;}
     menu[ds]={almuerzo,cena,wknd,fri,holiday:hol,
-      confAlm:!!kA,confCena:!!kC,confirmed:!!(kA&&kC),
+      confAlm:outside?!!old.confAlm:!!kA,confCena:outside?!!old.confCena:!!kC,confirmed:outside?!!old.confirmed:!!(kA&&kC),
       cookedAlm:kA?!!old.cookedAlm:false,cookedCena:kC?!!old.cookedCena:false,
       fitAlm:isFitDish(almuerzo),fitCena:isFitDish(cena),esSobra};
   }
@@ -1209,6 +1251,7 @@ function generateAll(opts={}){
   if(opts.newPeriod){S.marketChecked={};S.marketBought={};}
   saveState();renderAll();
   S.currentWeek=Math.max(0,Math.min(S.currentWeek||0,getWeeks().length-1));
+  if(opts.onlyMonday)return;
   if(rep&&!kept){toast('Menú propuesto · semanas 3 y 4 repiten la 1 y la 2');return;}
   toast(kept?`Nueva propuesta · se mantuvieron tus ${kept} platos aprobados`:`Menú propuesto: ${fmt(S.startDate)} al domingo ${fmt(periodEnd())} (${N} días)`);
 }
@@ -1327,7 +1370,7 @@ function renderCalendar(){
   const weekConf=weekDays.filter(({ds})=>S.menu[ds]?.confirmed).length;
   const repFromD=addDays(firstMonday(S.startDate),14);
   const repSrc=S.repeatFortnight&&weekDays[0].ds>=repFromD?weekIndexOf(addDays(weekDays[0].ds,-14)):-1;
-  const weekLabel=`${weekName(currentWeek)} — ${DAY_NAMES_SHORT[dayOfWeek(weekDays[0].ds)].toLowerCase()} ${fmt(weekDays[0].ds)} al dom ${fmt(weekDays[weekDays.length-1].ds)}${repSrc>=0?` · repite ${weekName(repSrc).toLowerCase()}`:''}`;
+  const weekLabel=`${getWeekMode(weekDays[0].ds)!=='normal'?'🥗 Semana 54D · ':''}${weekName(currentWeek)} — ${DAY_NAMES_SHORT[dayOfWeek(weekDays[0].ds)].toLowerCase()} ${fmt(weekDays[0].ds)} al dom ${fmt(weekDays[weekDays.length-1].ds)}${repSrc>=0?` · repite ${weekName(repSrc).toLowerCase()}`:''}`;
 
   html+=`<div class="week-card">
     <div class="week-header">
@@ -1338,6 +1381,9 @@ function renderCalendar(){
       </div>
     </div>`;
 
+  const wMode=getWeekMode(weekDays[0].ds);
+  html+=`<div class="week-mix" style="gap:.5rem"><span>Tipo de semana:</span><div class="seg">${Object.entries(WEEK_MODES).map(([k,l])=>`<button class="${wMode===k?'active':''}" onclick="setWeekMode(${currentWeek},'${k}')">${l}</button>`).join('')}</div>
+    ${wMode==='54d1'?'<span style="color:var(--grn-d)">Detox: proteína + verduras, sin carbohidratos</span>':wMode==='54dr'?'<span style="color:var(--grn-d)">Proteína + verduras + carbohidrato en el almuerzo</span>':''}</div>`;
   // Mezcla de proteínas de la semana
   const mix={};let especiales=0;
   weekDays.forEach(({ds})=>{const d=S.menu[ds];if(!d)return;[d.almuerzo,d.cena].forEach(x=>{if(x===SPECIAL_DISH){especiales++;return;}const f=getDishFamily(x);if(f!=='Otro')mix[f]=(mix[f]||0)+1;});});
@@ -1894,10 +1940,30 @@ function openSwap(ds,slot){
   _swapSearchPool=[...new Set(searchPool)];
 
   _swapExcluded=new Set([current]);
+  const mode54=getWeekMode(ds);
+  if(mode54!=='normal'){
+    const s1=mode54==='54d1';
+    const extra=isAlm?(s1?[]:D54.meta.X.map(x=>D54_PREFIX+x.n)):D54.meta.N.filter(x=>!s1||x.s1).map(x=>D54_PREFIX+x.n);
+    const st={used:{},lastP:'',lastA:'',lastC:'',lastV:'',lastCarb:''};
+    const combos=[];for(let k=0;k<12;k++)combos.push(pick54(isAlm?'A':'C',mode54,st));
+    _swapPool=[...new Set([...extra,...combos])];
+    _swapSearchPool=[...new Set([...extra,...D54.meta.X.map(x=>D54_PREFIX+x.n),...D54.meta.N.map(x=>D54_PREFIX+x.n),..._swapSearchPool])];
+  }
+  const cur54=is54(current)?parts54(current):[];
+  const opt54=(list,sel,blank)=>(blank?`<option value="">${blank}</option>`:'')+list.map(x=>`<option${sel===x.n?' selected':''}>${esc(x.n)}</option>`).join('');
+  const builder54=mode54==='normal'?'':`
+    <div class="section-ttl">Armar plato 54D <span style="font-size:.65rem;color:var(--txt3);text-transform:none;letter-spacing:0;font-family:inherit">(${WEEK_MODES[mode54]})</span></div>
+    <div style="display:grid;gap:.4rem;margin-bottom:.5rem">
+      <select class="search-input" id="b54-p" style="margin:0">${opt54(D54.meta.P.filter(x=>mode54!=='54d1'||x.s1),cur54[0])}</select>
+      <select class="search-input" id="b54-v" style="margin:0">${opt54(D54.meta.V,cur54[1])}</select>
+      ${isAlm&&mode54!=='54d1'?`<select class="search-input" id="b54-c" style="margin:0">${opt54(D54.meta.C,cur54[2],'Sin carbohidrato')}</select>`:''}
+    </div>
+    <button class="btn btn-sm btn-primary" style="margin-bottom:.9rem" onclick="use54Builder()">Usar este plato</button>`;
 
   document.getElementById('modal-box').innerHTML=`
     <h2>Cambiar ${isAlm?'almuerzo':'cena'} — ${DAY_NAMES[dayOfWeek(ds)]} ${fmt(ds)}</h2>
-    <p style="font-size:.78rem;color:var(--txt2);margin-bottom:.75rem">Actual: <strong>${esc(current)}</strong>${getReceta(current)?` · <a href="#" onclick="event.preventDefault();openRecipeEditor(decodeURIComponent('${enc(current)}'))" style="color:var(--grn-d)">ver receta</a>`:''}</p>
+    <p style="font-size:.78rem;color:var(--txt2);margin-bottom:.75rem">Actual: <strong>${esc(current)}</strong>${getReceta(current)&&!is54(current)?` · <a href="#" onclick="event.preventDefault();openRecipeEditor(decodeURIComponent('${enc(current)}'))" style="color:var(--grn-d)">ver receta</a>`:''}</p>
+    ${builder54}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
       <span class="section-ttl" style="margin:0">Sugerencias</span>
       <button class="btn btn-sm" onclick="refreshSuggestions()" style="font-size:.7rem">↺ Otras opciones</button>
@@ -1916,6 +1982,10 @@ function openSwap(ds,slot){
   renderSuggestions();
 }
 
+function use54Builder(){
+  const p=document.getElementById('b54-p')?.value,v=document.getElementById('b54-v')?.value,c=document.getElementById('b54-c')?.value;
+  if(!p||!v)return;doSwap(D54_PREFIX+p+' + '+v+(c?' + '+c:''));
+}
 function getSuggestions(){
   const data=S.menu[_swapDs];
   const curFam=getDishFamily(_swapSlot==='alm'?data.almuerzo:data.cena);

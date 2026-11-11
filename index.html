@@ -284,6 +284,10 @@ input[type=range]{accent-color:var(--grn)}
   .panel{padding:1.25rem 1rem}
 }
 /* ── v5 additions ── */
+.seg{display:inline-flex;flex-wrap:wrap;border:.5px solid var(--brd2);border-radius:var(--r);overflow:hidden}
+.seg button{border:none;background:var(--surf);padding:.35rem .7rem;font-size:.74rem;cursor:pointer;font-family:inherit;color:var(--txt2);border-right:.5px solid var(--brd)}
+.seg button:last-child{border-right:none}
+.seg button.active{background:var(--grn);color:#fff}
 #toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%) translateY(150%);background:var(--txt);color:var(--bg);padding:.55rem 1rem;border-radius:20px;font-size:.8rem;z-index:900;transition:transform .25s;max-width:90vw;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 #toast.show{transform:translateX(-50%) translateY(0)}
 .dish-link{cursor:pointer;border-radius:4px;transition:background .12s}
@@ -336,6 +340,8 @@ input[type=range]{accent-color:var(--grn)}
   .pool-checks{grid-template-columns:1fr}
   .opt-item{min-height:48px}
   .week-mix{padding:.4rem .7rem}
+  .seg{display:flex;width:100%}
+  .seg button{flex:1;padding:.45rem .3rem;font-size:.7rem}
   header .hdr-pdf{display:none}
 }
 </style>
@@ -489,12 +495,12 @@ function isSobraDish(dish){return Object.values(SOBRAS_CENA).includes(dish)&&!!s
 
 // Protein families for smart rotation limits (prefix match, case-insensitive)
 const PROTEIN_FAMILY={
-  'Pescado':    ['Pescado','Ceviche de pescado'],
-  'Pollo':      ['Pechuga de pollo','Contramuslo','Pollo','Arroz Atollado','Sopa Mejicana','Ensalada de Pollo','Pastas Pollo'],
+  'Pescado':    ['Pescado','Ceviche de pescado','Ceviche de camarón'],
+  'Pollo':      ['Pechuga de pollo','Contramuslo','Pollo','Sopa Mejicana','Ensalada de Pollo','Pastas Pollo'],
   'CerdoAsado': ['Carne de cerdo asada'],
   'LomoCerdo':  ['Lomo de cerdo','Costillas BBQ','Punta de anca','Tacos de cerdo','Tortilla de Cerdo','Gyozas','Sanduches de Costilla'],
   'Res':        ['Roastbeef','Bistec a Caballo','Strogonoff','Asado de tira','Albóndigas','Hamburguesa','Parmontier','Parmentier','Pastas Boloñesa','Pastas Lasaña','Musaka','Sanduches de Roastbeef','Sanduches de Asado'],
-  'Atun':       ['Molde de atún','Poke de Atún','Tostadas de Atún','Ensalada de atún','Pastas Atún']
+  'Atun':       ['Molde de atún','Poke de Atún','Tostadas de Atún','Ensalada de atún','Pastas Atún','Arroz Atollado']
 };
 const FAMILY_LABEL={Pescado:'Pescado',Pollo:'Pollo',CerdoAsado:'Cerdo asado',LomoCerdo:'Cerdo',Res:'Res',Atun:'Atún',Otro:'Sin proteína'};
 const _famIdx=Object.entries(PROTEIN_FAMILY).map(([f,ps])=>[f,ps.map(p=>p.toLowerCase())]);
@@ -695,9 +701,31 @@ const FIJOS_BASE=[
 ];
 
 // Correcciones de nombre (aplicadas a datos base y guardados)
-const DISH_RENAMES=[['Ensalda ','Ensalada '],['Duphinois','Dauphinois'],['Pan Naam','Pan Naan']];
+const DISH_RENAMES=[['Ensalda ','Ensalada '],['Duphinois','Dauphinois'],['Pan Naam','Pan Naan'],['Ceviche de pescado','Ceviche de camarón']];
 function fixName(n){let r=String(n||'');for(const[a,b]of DISH_RENAMES)r=r.split(a).join(b);return r;}
+// Porcionamiento v2 (recetario de Simón, nov 2026): proteína por porción de compra,
+// ingredientes 'al gusto' = se compran una vez, no se suman.
+Object.assign(RECETAS_BASE,{"Pescado y Habichuelines":[["Pescado",2,"filetes","Pescado","Éxito"],["Aceite de oliva",30,"ml","Despensa","Éxito"],["Habichuelines",200,"g","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pescado y Ensalada Tomates":[["Pescado",2,"filetes","Pescado","Éxito"],["Tomate",3,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Pescado y Papa Criolla":[["Pescado",2,"filetes","Pescado","Éxito"],["Papa criolla",400,"g","Verdura","Plaza"]],"Pescado y Papas al ajo":[["Pescado",2,"filetes","Pescado","Éxito"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pescado y Tomates al horno":[["Pescado",2,"filetes","Pescado","Éxito"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Carne de cerdo asada y Habichuelines":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Habichuelines",200,"g","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Carne de cerdo asada y Papa Criolla":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Papa criolla",400,"g","Verdura","Plaza"]],"Carne de cerdo asada y Papas al ajo":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Carne de cerdo asada y Tomates al horno":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pechuga de pollo y Habichuelines":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Habichuelines",200,"g","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pechuga de pollo y Papa Criolla":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Pechuga de pollo y Papas al ajo":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pechuga de pollo y Arroz y ensalada":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Arroz",1,"taza","Despensa","Éxito"],["Lechuga",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Albóndigas y Papa Criolla":[["Carne Molida",500,"g","Carne Res","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Albóndigas y Papas al ajo":[["Carne Molida",500,"g","Carne Res","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Molde de atún Papas al ajo":[["Atún",2,"latas","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Crema Leche",200,"g","Lácteos","Éxito"],["Polvo de hornear",0,"al gusto","Despensa","Éxito"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Molde de atún Papa Criolla":[["Atún",2,"latas","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Crema Leche",200,"g","Lácteos","Éxito"],["Polvo de hornear",0,"al gusto","Despensa","Éxito"],["Papa criolla",400,"g","Verdura","Plaza"]],"Pollo Jardinera y Papa Criolla":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Arveja",0.25,"taza","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Habichuelines",0.25,"taza","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Pollo apanado Papa Criolla":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Papa criolla",400,"g","Verdura","Plaza"]],"Contramuslo Pollo al horno Papa Criolla":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Contramuslo pollo al limón Papa Criolla":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Lomo de cerdo y Papa criolla":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa criolla",400,"g","Verdura","Plaza"]],"Lomo de cerdo y Papas al Ajo":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Lomo de cerdo y Arroz y Arveja":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Arroz",1,"taza","Despensa","Éxito"],["Arveja",0.5,"taza","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Crema Leche",200,"g","Lácteos","Éxito"]],"Lomo de cerdo y Repollo morado":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Repollo Morado",0.5,"unid","Verdura","Plaza"],["Manzana",2,"unid","Verdura","Plaza"],["Tocineta",0.5,"paquete","Carnes frías","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Lomo de cerdo y Tomates al horno":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Lomo de cerdo y Ensalada pepino y tomate":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Pepino",1,"unid","Verdura","Plaza"],["Cilantro",1,"manojo","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"]],"Punta de Anca y Gratin Dauphinois":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa Sabanera",5,"unid","Verdura","Plaza"],["Leche",0.5,"L","Lácteos","Éxito"],["Crema Leche",1,"pote","Lácteos","Éxito"],["Queso Gruyere",150,"g","Lácteos","Éxito"]],"Punta de anca de cerdo y Papas al Ajo":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Punta de anca de cerdo y Papa criolla":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa criolla",400,"g","Verdura","Plaza"]],"Roastbeef y Papas al Ajo":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Roastbeef y Papa criolla":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Roastbeef y Papas fritas":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Papa Sabanera",4,"unid","Verdura","Plaza"]],"Costillas BBQ y Papas al Ajo":[["Costillas Cerdo",700,"g","Carne Cerdo","Carnicería"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Costillas BBQ y Papa criolla":[["Costillas Cerdo",700,"g","Carne Cerdo","Carnicería"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Papa criolla",400,"g","Verdura","Plaza"]],"Costillas BBQ y Papas fritas":[["Costillas Cerdo",700,"g","Carne Cerdo","Carnicería"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa Sabanera",4,"unid","Verdura","Plaza"]],"Pollo al Curry y Arroz y Arveja":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Crema Leche",200,"g","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Curry",0,"al gusto","Despensa","Éxito"],["Arroz",1,"taza","Despensa","Éxito"],["Arveja",0.5,"taza","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Crema Leche",200,"g","Lácteos","Éxito"]],"Strogonoff y Papa Rosty":[["Lomo de Res",400,"g","Carne Res","Carnicería"],["Crema Leche",300,"g","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Vino Blanco",0.25,"botella","Despensa","D1"],["Papa Sabanera",4,"unid","Verdura","Plaza"]],"Hamburguesa y Papas fritas":[["Carne Molida",500,"g","Carne Res","Carnicería"],["Pan Brioche",1,"unid","Despensa","Éxito"],["Queso Hamburguesa",2,"tajadas","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa Sabanera",4,"unid","Verdura","Plaza"]],"Asado de tira y Risotto":[["Asado de tira",1000,"g","Carne Res","Carnicería"],["Cebolla cabezona",2,"unid","Verdura","Plaza"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Apio",1,"rama","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Arroz Arborio",1,"taza","Despensa","Éxito"],["Queso Grana Padano",100,"g","Lácteos","Éxito"]],"Bistec a Caballo Papa criolla":[["Chatas de res en bife",2,"bifes de 200 g","Carne Res","Carnicería"],["Huevos",2,"unid","Huevos","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Papa criolla",400,"g","Verdura","Plaza"]],"Bistec a Caballo Papas al Ajo":[["Chatas de res en bife",2,"bifes de 200 g","Carne Res","Carnicería"],["Huevos",2,"unid","Huevos","Carnicería"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Asado de Tira y Risotto Alcachofa":[["Asado de tira",1000,"g","Carne Res","Carnicería"],["Cebolla cabezona",2,"unid","Verdura","Plaza"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Apio",1,"rama","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Arroz Arborio",1,"taza","Despensa","Éxito"],["Alcachofa",4,"unid","Verdura","Plaza"],["Queso Grana Padano",100,"g","Lácteos","Éxito"]],"Asado de Tira y Risotto Espárragos":[["Asado de tira",1000,"g","Carne Res","Carnicería"],["Cebolla cabezona",2,"unid","Verdura","Plaza"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Apio",1,"rama","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Arroz Arborio",1,"taza","Despensa","Éxito"],["Esparragos",1,"manojo","Verdura","Plaza"],["Queso Grana Padano",100,"g","Lácteos","Éxito"]],"Albóndigas y Papas tajadas":[["Carne Molida",500,"g","Carne Res","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Albóndigas y Arroz y ensalada":[["Carne Molida",500,"g","Carne Res","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Arroz",1,"taza","Despensa","Éxito"],["Lechuga",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Asado de Tira y Risotto Tomate":[["Asado de tira",1000,"g","Carne Res","Carnicería"],["Cebolla cabezona",2,"unid","Verdura","Plaza"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Apio",1,"rama","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Arroz Arborio",1,"taza","Despensa","Éxito"],["Queso Grana Padano",100,"g","Lácteos","Éxito"]],"Bistec a Caballo Ensalada pepino y tomate":[["Chatas de res en bife",2,"bifes de 200 g","Carne Res","Carnicería"],["Huevos",2,"unid","Huevos","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Cilantro",1,"manojo","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"]],"Bistec a Caballo Molde Papa y Coliflor":[["Chatas de res en bife",2,"bifes de 200 g","Carne Res","Carnicería"],["Huevos",2,"unid","Huevos","Carnicería"],["Papa Sabanera",4,"unid","Verdura","Plaza"],["Coliflor",1,"unid","Verdura","Plaza"],["Leche",0.5,"L","Lácteos","Éxito"],["Harina de trigo",0,"al gusto","Despensa","Éxito"],["Queso Parmesano",0.25,"bolsa","Lácteos","Éxito"]],"Bistec a Caballo Papas fritas":[["Chatas de res en bife",2,"bifes de 200 g","Carne Res","Carnicería"],["Huevos",2,"unid","Huevos","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Papa Frita",0.5,"paquete","Despensa","Éxito"]],"Bistec a Caballo Yuca frita":[["Chatas de res en bife",2,"bifes de 200 g","Carne Res","Carnicería"],["Huevos",2,"unid","Huevos","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Carne de cerdo asada y Ensalada Tomates":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Tomate",3,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Carne de cerdo asada y Papas tajadas":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Carne de cerdo asada y Arroz y ensalada":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Arroz",1,"taza","Despensa","Éxito"],["Lechuga",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Carne de cerdo asada y Yuca frita":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Contramuslo Pollo al horno Habichuelines":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Habichuelines",200,"g","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Contramuslo Pollo al horno Ensalada Tomates":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Contramuslo Pollo al horno Papas al ajo":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Contramuslo Pollo al horno Papas tajadas":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Contramuslo Pollo al horno Yuca frita":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Contramuslo pollo al limón Habichuelines":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Habichuelines",200,"g","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Contramuslo pollo al limón Papas al ajo":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Contramuslo pollo al limón Papas tajadas":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Contramuslo pollo al limón Tomates al horno":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Contramuslo pollo al limón Yuca frita":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Costillas BBQ y Yuca frita":[["Costillas Cerdo",500,"g","Carne Cerdo","Carnicería"],["Tomate en Lata",1,"lata","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Cerveza",1,"lata","Despensa","D1"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Lomo de cerdo y Parmesana Berenjena y papa":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Berenjena",2,"unid","Verdura","Plaza"],["Tomate",4,"unid","Verdura","Plaza"],["Queso doble Crema",0.5,"unid","Lácteos","Éxito"],["Albahaca",1,"manojo","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Lomo de cerdo y Papa Salada y Guacamole":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa Sabanera",4,"unid","Verdura","Plaza"],["Aguacate",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Limón",1,"unid","Verdura","Plaza"],["Cilantro",1,"manojo","Verdura","Plaza"]],"Lomo de cerdo y Yuca frita":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Molde de atún Papas tajadas":[["Atún",2,"latas","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Crema Leche",200,"g","Lácteos","Éxito"],["Polvo de hornear",0,"al gusto","Despensa","Éxito"],["Queso Doble crema",0.25,"unid","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Molde de atún Yuca frita":[["Atún",2,"latas","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Crema Leche",200,"g","Lácteos","Éxito"],["Polvo de hornear",0,"al gusto","Despensa","Éxito"],["Queso Doble crema",0.25,"unid","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Pechuga de pollo y Ensalada Tomates":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Pechuga de pollo y Papa Chorreada":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Papa Sabanera",4,"unid","Verdura","Plaza"],["Cebolla Larga",1,"unid","Verdura","Plaza"],["Queso doble Crema",0.5,"unid","Lácteos","Éxito"],["Crema Leche",0.5,"pote","Lácteos","Éxito"],["Tomate",3,"unid","Verdura","Plaza"]],"Pechuga de pollo y Papas tajadas":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Pechuga de pollo y Tomates al horno":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pechuga de pollo y Yuca frita":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Pescado y Papas tajadas":[["Pescado",2,"filetes","Pescado","Éxito"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Pescado y Yuca frita":[["Pescado",2,"filetes","Pescado","Éxito"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Pollo Jardinera y Papas al ajo":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Arveja",0.25,"taza","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Habichuelines",0.25,"taza","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pollo Jardinera y Papas tajadas":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Arveja",0.25,"taza","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Habichuelines",0.25,"taza","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Pollo Jardinera y Arroz y ensalada":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Arveja",0.25,"taza","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Habichuelines",0.25,"taza","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Arroz",1,"taza","Despensa","Éxito"],["Lechuga",1,"unid","Verdura","Plaza"],["Tomate",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Pollo Jardinera y Yuca frita":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Arveja",0.25,"taza","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Habichuelines",0.25,"taza","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Pollo apanado Habichuelines":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Habichuelines",200,"g","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pollo apanado Ensalada Tomates":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Tomate",3,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"]],"Pollo apanado Papas al ajo":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Papa Sabanera",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pollo apanado Papas tajadas":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Papa Sabanera",3,"unid","Verdura","Plaza"]],"Pollo apanado Tomates al horno":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Pollo apanado Yuca frita":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Punta de Anca y Tomates al Horno":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Naranja",3,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"]],"Punta de Anca y Yuca frita":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Naranja",3,"unid","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Punta de anca de cerdo y Ensalada pepino y tomate":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Naranja",3,"unid","Verdura","Plaza"],["Pepino",1,"unid","Verdura","Plaza"],["Cilantro",1,"manojo","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"]],"Punta de anca de cerdo y Papa Frita":[["Punta de Anca de Cerdo",500,"g","Carne Cerdo","Carnicería"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Naranja",3,"unid","Verdura","Plaza"],["Papa Frita",0.5,"paquete","Despensa","Éxito"]],"Roastbeef y Parmesana Berenjena":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Berenjena",2,"unid","Verdura","Plaza"],["Tomate",4,"unid","Verdura","Plaza"],["Queso doble Crema",0.5,"unid","Lácteos","Éxito"],["Albahaca",1,"manojo","Verdura","Plaza"]],"Roastbeef y Molde Papa y Coliflor":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Papa Sabanera",4,"unid","Verdura","Plaza"],["Coliflor",1,"unid","Verdura","Plaza"],["Leche",0.5,"L","Lácteos","Éxito"],["Harina de trigo",0,"al gusto","Despensa","Éxito"],["Queso Parmesano",0.25,"bolsa","Lácteos","Éxito"]],"Roastbeef y Yuca frita":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Yuca",0.5,"kg","Verdura","Plaza"]],"Strogonoff y Papa criolla":[["Lomo de Res",400,"g","Carne Res","Carnicería"],["Crema Leche",300,"g","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Vino Blanco",0.25,"botella","Despensa","D1"],["Papa criolla",400,"g","Verdura","Plaza"]],"Strogonoff y Arroz y Arveja":[["Lomo de Res",400,"g","Carne Res","Carnicería"],["Crema Leche",300,"g","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Vino Blanco",0.25,"botella","Despensa","D1"],["Arroz",1,"taza","Despensa","Éxito"],["Arveja",0.5,"taza","Verdura","Plaza"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Crema Leche",200,"g","Lácteos","Éxito"]],"Pescado y Ensalada Zanahoria":[["Pescado",2,"filetes","Pescado","Éxito"],["Zanahoria",2,"unid","Verdura","Plaza"],["Cebolla Larga",2,"unid","Verdura","Plaza"]],"Carne de cerdo asada y Ensalada Zanahoria":[["Carne de Cerdo Asada",2,"porciones de lomo en mariposa","Carne Cerdo","Carnicería"],["Zanahoria",2,"unid","Verdura","Plaza"],["Cebolla Larga",2,"unid","Verdura","Plaza"]],"Pechuga de pollo y Ensalada Zanahoria":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Cebolla cabezona",0.5,"unid","Verdura","Plaza"],["Zanahoria",2,"unid","Verdura","Plaza"],["Cebolla Larga",2,"unid","Verdura","Plaza"]],"Lomo de cerdo y Gratin Dauphinois":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Papa Sabanera",5,"unid","Verdura","Plaza"],["Leche",0.5,"L","Lácteos","Éxito"],["Crema Leche",1,"pote","Lácteos","Éxito"],["Queso Gruyere",150,"g","Lácteos","Éxito"]],"Roastbeef y Gratin Dauphinois":[["Roastbeef",500,"g","Carne Res","Carnicería"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Tomate",2,"unid","Verdura","Plaza"],["Tomillo",0,"al gusto","Verdura","Plaza"],["Papa Sabanera",5,"unid","Verdura","Plaza"],["Leche",0.5,"L","Lácteos","Éxito"],["Crema Leche",1,"pote","Lácteos","Éxito"],["Queso Gruyere",150,"g","Lácteos","Éxito"]],"Pollo al Curry y Pan Naan":[["Pechuga de pollo",1,"media pechuga sin porcionar","Pollo","Carnicería"],["Crema Leche",200,"g","Lácteos","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Curry",0,"al gusto","Despensa","Éxito"],["Harina",300,"g","Despensa","Éxito"],["Yogurt Griego",1,"pote","Lácteos","Éxito"]],"Contramuslo Pollo al horno Ensalada Zanahoria":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Zanahoria",2,"unid","Verdura","Plaza"],["Cebolla Larga",2,"unid","Verdura","Plaza"]],"Contramuslo pollo al limón Ensalada Zanahoria":[["Contramuslo Pollo",700,"g","Pollo","Carnicería"],["Limón",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Zanahoria",2,"unid","Verdura","Plaza"],["Cebolla Larga",2,"unid","Verdura","Plaza"]],"Pollo apanado Ensalada Zanahoria":[["Pechuga de pollo",1,"media pechuga en mariposa","Pollo","Carnicería"],["Harina de trigo",1,"paquete","Despensa","Éxito"],["Miga de Pan",1,"paquete","Despensa","Éxito"],["Huevos",1,"unid","Huevos","Carnicería"],["Zanahoria",2,"unid","Verdura","Plaza"],["Cebolla Larga",2,"unid","Verdura","Plaza"]],"Lomo de Cerdo con Lentejas y Arroz":[["Lomo de Cerdo",1,"cañón de lomo de 500 g","Carne Cerdo","Carnicería"],["Naranja",2,"unid","Verdura","Plaza"],["Leche",0.5,"taza","Lácteos","Éxito"],["Siracha",0,"al gusto","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Mostaza",0,"al gusto","Despensa","Éxito"],["Panela",0,"al gusto","Despensa","Éxito"],["Lentejas",1,"taza","Despensa","Éxito"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Pimentón",1,"unid","Verdura","Plaza"],["Tomate",3,"unid","Verdura","Plaza"],["Ajo",20,"g","Verdura","Plaza"],["Arroz",1,"taza","Despensa","Éxito"]],"Arroz Atollado":[["Atún",2,"latas","Despensa","Éxito"],["Arroz",1,"taza","Despensa","Éxito"],["Tomate",3,"unid","Verdura","Plaza"],["Zanahoria",1,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Arveja",0.5,"taza","Verdura","Plaza"],["Habichuelines",0.5,"manojo","Verdura","Plaza"]],"Parmontier":[["Carne Molida",500,"g","Carne Res","Carnicería"],["Tomate",2,"unid","Verdura","Plaza"],["Cebolla cabezona",1,"unid","Verdura","Plaza"],["Zanahoria",0.5,"unid","Verdura","Plaza"],["Papa Sabanera",4,"unid","Verdura","Plaza"],["Crema Leche",1,"pote","Lácteos","Éxito"],["Queso Parmesano",1,"bolsa","Lácteos","Éxito"]],"ArePizza de jamón y queso":[["Jamón Cocido",3,"tajadas","Carnes frías","Éxito"],["Arepa",3,"unid","Despensa","Éxito"],["Queso Tajado",3,"tajadas","Lácteos","Éxito"],["Tomate",1,"unid","Verdura","Plaza"]],"Punta de anca de cerdo y Arepa":[["Arepa",2,"unid","Despensa","Éxito"],["Queso Arepa",60,"g","Lácteos","Éxito"]],"Bistec a Caballo con Arepa":[["Arepa",2,"unid","Despensa","Éxito"],["Queso Arepa",60,"g","Lácteos","Éxito"]]});
+
+// Crema de leche siempre en gramos (cantidades definidas por Simón)
+const CREMA_G={'Crema de tomate':50,'Parmontier':150,'Musaka de plátano':100,'Sopa de Ahuyama':50,'Sopa de Espinaca':50,'Pastas Del huerto':300,'Pastas Jamón y crema':300,'Pastas Lasaña':200};
+function cremaToGrams(name,lines){
+  (lines||[]).forEach(l=>{
+    if(String(l[0]).toLowerCase()!=='crema leche'||l[2]==='g')return;
+    let g=CREMA_G[name];
+    if(g==null&&/gratin dauphinois/i.test(name))g=500;
+    if(g==null&&/papa chorreada/i.test(name))g=300;
+    if(g==null)g=Math.round((Number(l[1])||1)*200);
+    l[1]=g;l[2]='g';
+  });
+}
+Object.entries(RECETAS_BASE).forEach(([n,r])=>cremaToGrams(n,r));
+
+// Tienda por categoría: pollo, res, cerdo y huevos se compran en la carnicería
+const STORE_BY_TIPO={'Pollo':'Carnicería','Carne Res':'Carnicería','Carne Cerdo':'Carnicería','Huevos':'Carnicería'};
+function applyStoreRules(lines){(lines||[]).forEach(l=>{if(STORE_BY_TIPO[l[3]])l[4]=STORE_BY_TIPO[l[3]];});}
 (function normalizeBase(){
+  Object.values(RECETAS_BASE).forEach(applyStoreRules);applyStoreRules(FIJOS_BASE);
   for(const obj of[PLATOS_BASE,PLATOS_FIT])for(const k of Object.keys(obj))obj[k]=[...new Set(obj[k].map(fixName))];
   for(const k of Object.keys(RECETAS_BASE)){const f=fixName(k);if(f!==k){if(!RECETAS_BASE[f])RECETAS_BASE[f]=RECETAS_BASE[k];delete RECETAS_BASE[k];}}
 })();
@@ -726,12 +754,15 @@ var S={
   useInventory:false,    // descontar lo que ya hay en casa
   hideChecked:false,
   repeatFortnight:false,
+  vegView:'mes',
   mktCollapsed:{},
   updatedAt:0
 };
 
 function migrateState(){
   S.recetas=Object.assign({},S.recetas);
+  if(!S.migCarniceria){Object.values(S.recetas).forEach(applyStoreRules);S.migCarniceria=true;}
+  if(!S.migCremaG){Object.entries(S.recetas).forEach(([n,r])=>cremaToGrams(n,r));S.migCremaG=true;}
   for(const k of Object.keys(S.recetas)){const f=fixName(k);if(f!==k){S.recetas[f]=S.recetas[k];delete S.recetas[k];}}
   Object.values(S.menu||{}).forEach(d=>{d.almuerzo=fixName(d.almuerzo);d.cena=fixName(d.cena);});
   for(const k of['excluded','excludedFit','marketBought','mktCollapsed','marketChecked','inventory'])if(!S[k]||typeof S[k]!=='object')S[k]={};
@@ -988,7 +1019,7 @@ function openOptionsModal(){
     ${cfg?.gistId?`<button class="opt-item" onclick="syncLoadNow()">⟳<span>Traer cambios de la nube ahora</span></button>`:''}
     <button class="opt-item" onclick="closeModal();exportMenu()">↓<span>Descargar respaldo (.json)</span></button>
     <button class="opt-item" onclick="closeModal();importMenu()">↑<span>Importar respaldo</span></button>
-    <button class="opt-item" onclick="closeModal();regenerateAll()">🎲<span>Rehacer todo el menú<small>Vuelve a proponer los 28 días, incluso los aprobados</small></span></button>
+    <button class="opt-item" onclick="closeModal();regenerateAll()">🎲<span>Rehacer todo el menú<small>Vuelve a proponer todo el período, incluso lo aprobado</small></span></button>
     <button class="opt-item danger" onclick="resetAll()">🗑<span>Borrar todo y empezar de cero<small>Menú, mercado, inventario y recetas propias</small></span></button>
   </div>
   <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal()">Cerrar</button></div>`);
@@ -1025,11 +1056,25 @@ function getHols(){
   // collect all years in current window
   const years=new Set();
   if(S.startDate)years.add(parseInt(S.startDate.slice(0,4)));
-  const end=addDays(S.startDate||todayStr(),27);
+  const end=addDays(S.startDate||todayStr(),35);
   years.add(parseInt(end.slice(0,4)));
   const merged={has:d=>[...years].some(y=>colombianHolidays(y).has(d)),name:d=>{for(const y of years){const h=colombianHolidays(y);if(h.has(d))return h.name(d);}return'Festivo'}};
   return merged;
 }
+
+// Período: completa la semana de inicio (hasta el domingo) + 4 semanas lun–dom
+function periodDays(start){const dw=dayOfWeek(start);if(dw===1)return 28;return (dw===0?1:8-dw)+28;}
+function firstMonday(start){const dw=dayOfWeek(start);return dw===1?start:addDays(start,dw===0?1:8-dw);}
+function menuDates(){return Object.keys(S.menu).sort();}
+function periodEnd(){const d=menuDates();return d.length?d[d.length-1]:addDays(S.startDate||todayStr(),periodDays(S.startDate||todayStr())-1);}
+function mondayOf(ds){return addDays(ds,-((dayOfWeek(ds)+6)%7));}
+function getWeeks(){const g={};menuDates().forEach(ds=>{(g[mondayOf(ds)]=g[mondayOf(ds)]||[]).push(ds);});return Object.keys(g).sort().map(k=>g[k]);}
+function hasStub(){const w=getWeeks();return w.length>0&&dayOfWeek(w[0][0])!==1;}
+function weekName(i){return hasStub()?(i===0?'Arranque':`Semana ${i}`):`Semana ${i+1}`;}
+// Quincenas (para verduras): Q1 = arranque + semanas 1–2, Q2 = semanas 3–4
+function quincenas(){const d=menuDates();if(!d.length)return null;const cut=addDays(firstMonday(S.startDate),14);
+  return{q1:{from:d[0],to:addDays(cut,-1)},q2:{from:cut,to:d[d.length-1]}};}
+function weekIndexOf(ds){return getWeeks().findIndex(w=>w.includes(ds));}
 
 function isWeekend(ds,hols){const dw=dayOfWeek(ds);return dw===0||dw===6||hols.has(ds)}
 function isFriday(ds){return dayOfWeek(ds)===5}
@@ -1095,7 +1140,10 @@ function generateAll(opts={}){
   };
   const rep=!!S.repeatFortnight;
   // Con quincena repetida, los límites aplican a 14 días (luego se duplican)
-  const familyCounts={},maxFamily=rep?{Pescado:2,Pollo:4,Atun:2}:{Pescado:3,Pollo:8,Atun:4},usedCount={},lastUsed={};
+  const N=periodDays(S.startDate),repFrom=addDays(firstMonday(S.startDate),14);
+  const uniq=rep?Math.round((new Date(repFrom+'T12:00:00')-new Date(S.startDate+'T12:00:00'))/864e5):N;
+  const sc=v=>Math.max(1,Math.round(v*uniq/28));
+  const familyCounts={},maxFamily={Pescado:sc(3),Pollo:sc(8),Atun:sc(4)},usedCount={},lastUsed={};
   // Proteínas que ya estaban en casa (no compradas en este mercado) → se usan primero
   const invProt={};
   Object.entries(S.inventory||{}).forEach(([k,v])=>{
@@ -1108,7 +1156,7 @@ function generateAll(opts={}){
   const note=(slot,d,i)=>{usedCount[slot+':'+d]=(usedCount[slot+':'+d]||0)+1;lastUsed[slot+':'+d]=i;};
 
   const menu={};let lastA='',lastC='',sobraWeek=false,kept=0;
-  for(let i=0;i<28;i++){
+  for(let i=0;i<N;i++){
     const ds=addDays(S.startDate,i);
     if(dayOfWeek(ds)===1)sobraWeek=false; // semanas lun–dom: máx 1 cena de sobras
     const wknd=isWeekend(ds,hols),fri=isFriday(ds),hol=hols.has(ds);
@@ -1118,7 +1166,7 @@ function generateAll(opts={}){
     const cPool=(fri&&!wknd)?pools.cFri:wknd?pools.cF:pools.cS;
 
     // Repetir quincena: semana 3 = semana 1, semana 4 = semana 2 (si el tipo de día coincide)
-    const src=rep&&i>=14?menu[addDays(S.startDate,i-14)]:null;
+    const src=rep&&ds>=repFrom?menu[addDays(ds,-14)]:null;
     const same=!!src&&src.wknd===wknd&&!!src.fri===!!fri;
     const cpA=same&&src.almuerzo!==SPECIAL_DISH?src.almuerzo:null;
     const cpC=same&&src.cena!==SPECIAL_DISH?src.cena:null;
@@ -1149,8 +1197,9 @@ function generateAll(opts={}){
   S.menu=menu;
   if(opts.newPeriod){S.marketChecked={};S.marketBought={};}
   saveState();renderAll();
+  S.currentWeek=Math.max(0,Math.min(S.currentWeek||0,getWeeks().length-1));
   if(rep&&!kept){toast('Menú propuesto · semanas 3 y 4 repiten la 1 y la 2');return;}
-  toast(kept?`Nueva propuesta · se mantuvieron tus ${kept} platos aprobados`:'Menú propuesto para 4 semanas');
+  toast(kept?`Nueva propuesta · se mantuvieron tus ${kept} platos aprobados`:`Menú propuesto: ${fmt(S.startDate)} al domingo ${fmt(periodEnd())} (${N} días)`);
 }
 
 function toggleRepeat(on){
@@ -1158,8 +1207,9 @@ function toggleRepeat(on){
   if(!on||!Object.keys(S.menu).length){saveState();renderCalendar();if(!on)toast('Desactivado: aplica la próxima vez que propongas el menú');return;}
   // Copiar semanas 1–2 a 3–4 respetando lo aprobado y el tipo de día
   let n=0,skip=0;
-  for(let i=14;i<28;i++){
-    const ds=addDays(S.startDate,i),t=S.menu[ds],src=S.menu[addDays(S.startDate,i-14)];
+  const repFrom=addDays(firstMonday(S.startDate),14);
+  for(const ds of menuDates().filter(d=>d>=repFrom)){
+    const t=S.menu[ds],src=S.menu[addDays(ds,-14)];
     if(!t||!src)continue;
     if(src.wknd!==t.wknd||!!src.fri!==!!t.fri){skip++;continue;}
     if(!t.confAlm&&src.almuerzo!==SPECIAL_DISH){t.almuerzo=src.almuerzo;t.fitAlm=src.fitAlm;n++;}
@@ -1171,15 +1221,15 @@ function toggleRepeat(on){
 }
 
 function regenerateAll(){
-  if(Object.keys(S.menu).length&&!confirm('¿Rehacer los 28 días? Se pierden las aprobaciones actuales.'))return;
+  if(Object.keys(S.menu).length&&!confirm('¿Rehacer todo el menú desde cero? Se pierden las aprobaciones actuales.'))return;
   generateAll({keepApproved:false});
 }
 
 function setStartDate(v){
   if(!v||v===S.startDate){return;}
   const hadMenu=Object.keys(S.menu).length>0;
-  const oldEnd=S.startDate?addDays(S.startDate,27):null;
-  const newPeriod=!hadMenu||!oldEnd||v>oldEnd||v<addDays(S.startDate,-27);
+  const oldEnd=hadMenu?periodEnd():null;
+  const newPeriod=!hadMenu||!oldEnd||v>oldEnd||v<addDays(S.startDate,-28);
   const msg=newPeriod
     ?`¿Empezar un período nuevo desde el ${fmtFull(v)}?\n\nSe propone un menú nuevo y la lista de mercado arranca de cero. El inventario se mantiene y se usa primero.`
     :`¿Mover el inicio al ${fmtFull(v)}?\n\nLos platos aprobados en fechas que sigan dentro del período se mantienen.`;
@@ -1200,7 +1250,7 @@ function renderAll(){updateHeader();renderCalendar();renderResumen();renderMealP
 function updateHeader(){
   const total=Object.keys(S.menu).length;
   const conf=Object.values(S.menu).filter(d=>d.confirmed).length;
-  const end=total?addDays(S.startDate,27):'';
+  const end=total?periodEnd():'';
   document.getElementById('hdr-sub').textContent=total?`${fmt(S.startDate)} → ${fmt(end)} · ${conf}/${total} confirmados`:'Sin menú generado';
 }
 
@@ -1214,7 +1264,9 @@ function renderCalendar(){
   const today=todayStr();
   const total=Object.keys(S.menu).length;
   const conf=Object.values(S.menu).filter(d=>d.confirmed).length;
-  const currentWeek=S.currentWeek||0;
+  const WEEKS=getWeeks();
+  const currentWeek=Math.min(S.currentWeek||0,Math.max(0,WEEKS.length-1));
+  const lastW=WEEKS.length-1;
 
   // Top controls
   let html=`<div class="ctrl-bar">
@@ -1233,7 +1285,10 @@ function renderCalendar(){
       <label>Aprobados</label>
       <span style="font-size:.85rem;font-weight:500;color:${conf===total&&total?'var(--grn)':'var(--txt2)'}">${conf}/${total||'—'}</span>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="generateAll()" title="${conf?'Vuelve a proponer solo los platos no aprobados':''}">${total?(Object.values(S.menu).some(d=>d.confAlm||d.confCena)?'🎲 Proponer pendientes':'🎲 Proponer de nuevo'):'Proponer menú'}</button>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      ${total?`<button class="btn btn-warn btn-sm" onclick="regenerateAll()" title="Vuelve a proponer todo el período, incluso lo aprobado">🔄 Rehacer todo</button>`:''}
+      <button class="btn btn-primary btn-sm" onclick="generateAll()" title="${conf?'Vuelve a proponer solo los platos no aprobados':''}">${total?(Object.values(S.menu).some(d=>d.confAlm||d.confCena)?'🎲 Proponer pendientes':'🎲 Proponer de nuevo'):'Proponer menú'}</button>
+    </div>
   </div>`;
 
   if(!total){
@@ -1249,20 +1304,19 @@ function renderCalendar(){
   html+=`<div class="week-nav">
     <button class="week-nav-btn" onclick="setWeek(${currentWeek-1})" ${currentWeek===0?'disabled':''}>‹</button>
     <div class="week-dots">
-      ${[0,1,2,3].map(w=>`<div class="week-dot${w===currentWeek?' active':''}" onclick="setWeek(${w})" title="Semana ${w+1}"></div>`).join('')}
+      ${WEEKS.map((_,w)=>`<div class="week-dot${w===currentWeek?' active':''}" onclick="setWeek(${w})" title="${weekName(w)}"></div>`).join('')}
     </div>
-    <button class="week-nav-btn" onclick="setWeek(${currentWeek+1})" ${currentWeek===3?'disabled':''}>›</button>
+    <button class="week-nav-btn" onclick="setWeek(${currentWeek+1})" ${currentWeek===lastW?'disabled':''}>›</button>
   </div>`;
 
   // Build the 7 days of the current week
   const weekDays=[];
-  for(let d=0;d<7;d++){
-    const dayIdx=currentWeek*7+d;
-    if(dayIdx<28) weekDays.push({ds:addDays(S.startDate,dayIdx),dayIdx});
-  }
+  (WEEKS[currentWeek]||[]).forEach(ds=>weekDays.push({ds}));
 
   const weekConf=weekDays.filter(({ds})=>S.menu[ds]?.confirmed).length;
-  const weekLabel=`Semana ${currentWeek+1} — ${fmt(weekDays[0].ds)} al ${fmt(weekDays[weekDays.length-1].ds)}${S.repeatFortnight&&currentWeek>=2?` · repite semana ${currentWeek-1}`:''}`;
+  const repFromD=addDays(firstMonday(S.startDate),14);
+  const repSrc=S.repeatFortnight&&weekDays[0].ds>=repFromD?weekIndexOf(addDays(weekDays[0].ds,-14)):-1;
+  const weekLabel=`${weekName(currentWeek)} — ${DAY_NAMES_SHORT[dayOfWeek(weekDays[0].ds)].toLowerCase()} ${fmt(weekDays[0].ds)} al dom ${fmt(weekDays[weekDays.length-1].ds)}${repSrc>=0?` · repite ${weekName(repSrc).toLowerCase()}`:''}`;
 
   html+=`<div class="week-card">
     <div class="week-header">
@@ -1336,8 +1390,8 @@ function renderCalendar(){
   // Week navigation bottom
   html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem">
     <button class="btn btn-sm" onclick="setWeek(${currentWeek-1})" ${currentWeek===0?'disabled':''} style="${currentWeek===0?'opacity:.3':''}">← Semana anterior</button>
-    <span style="font-size:.75rem;color:var(--txt3)">Semana ${currentWeek+1} de 4</span>
-    ${currentWeek<3
+    <span style="font-size:.75rem;color:var(--txt3)">${weekName(currentWeek)} · ${currentWeek+1} de ${WEEKS.length}</span>
+    ${currentWeek<lastW
       ? `<button class="btn btn-sm btn-primary" onclick="setWeek(${currentWeek+1})">Siguiente semana →</button>`
       : `<button class="btn btn-primary btn-sm" onclick="finalizeMenu()">Listo → ver mercado</button>`
     }
@@ -1354,7 +1408,7 @@ function renderCalendar(){
 }
 
 function setWeek(w){
-  if(w<0||w>3)return;
+  if(w<0||w>getWeeks().length-1)return;
   S.currentWeek=w;
   saveState();
   renderCalendar();
@@ -1378,12 +1432,10 @@ function unapproveSlot(ds,slot){
 }
 
 function confirmWeek(weekIdx){
-  for(let d=0;d<7;d++){
-    const ds=addDays(S.startDate,weekIdx*7+d);
-    if(S.menu[ds]){S.menu[ds].confAlm=true;S.menu[ds].confCena=true;S.menu[ds].confirmed=true;}
-  }
-  if(weekIdx<3){S.currentWeek=weekIdx+1;toast(`Semana ${weekIdx+1} aprobada → semana ${weekIdx+2}`);}
-  else toast('Semana 4 aprobada');
+  const W=getWeeks();
+  (W[weekIdx]||[]).forEach(ds=>{const d=S.menu[ds];d.confAlm=true;d.confCena=true;d.confirmed=true;});
+  if(weekIdx<W.length-1){S.currentWeek=weekIdx+1;toast(`${weekName(weekIdx)} aprobada → ${weekName(weekIdx+1).toLowerCase()}`);}
+  else toast(`${weekName(weekIdx)} aprobada`);
   saveState();renderAll();window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1415,7 +1467,7 @@ function renderResumen(){
 
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
     <div>
-      <p style="font-size:.8rem;color:var(--txt2)">${fmt(S.startDate)} → ${fmt(addDays(S.startDate,27))} · ${conf}/${total} confirmados</p>
+      <p style="font-size:.8rem;color:var(--txt2)">${fmt(S.startDate)} → ${fmt(periodEnd())} · ${conf}/${total} confirmados</p>
       <p style="font-size:.7rem;color:var(--txt3)">Toca un plato para cambiarlo.</p>
     </div>
     <div style="display:flex;gap:.4rem">
@@ -1426,20 +1478,20 @@ function renderResumen(){
 
   // 7-column grid header
   html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem;margin-bottom:.3rem">`;
-  ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(n=>
+  ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].forEach(n=>
     html+=`<div style="text-align:center;font-size:.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;font-family:monospace;padding:.25rem 0">${n}</div>`
   );
   html+=`</div>`;
 
   // Build grid: pad to start on correct DOW, then 28 days
-  const startDow=dayOfWeek(S.startDate);
-  const totalCells=startDow+28;
+  const startDow=(dayOfWeek(S.startDate)+6)%7, NDAYS=total;
+  const totalCells=startDow+NDAYS;
   const rows=Math.ceil(totalCells/7);
 
   html+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem" id="resumen-grid">`;
   for(let i=0;i<rows*7;i++){
     const dayIdx=i-startDow;
-    if(dayIdx<0||dayIdx>=28){
+    if(dayIdx<0||dayIdx>=NDAYS){
       html+=`<div style="background:var(--surf2);border-radius:var(--r);opacity:.25;min-height:90px"></div>`;
       continue;
     }
@@ -1525,9 +1577,9 @@ function exportMenuPDF(){
   if(!Object.keys(S.menu).length){ alert('Genera el menú primero.'); return; }
 
   const hols = getHols();
-  const startDow = dayOfWeek(S.startDate);
-  const rows = Math.ceil((startDow+28)/7);
-  const DAY_SHORT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const startDow = (dayOfWeek(S.startDate)+6)%7, NDAYS=menuDates().length;
+  const rows = Math.ceil((startDow+NDAYS)/7);
+  const DAY_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
   const DAY_FULL  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -1538,7 +1590,7 @@ function exportMenuPDF(){
     calGrid+=`<tr>`;
     for(let c=0;c<7;c++){
       const idx=r*7+c-startDow;
-      if(idx<0||idx>=28){ calGrid+=`<td class="empty"></td>`; continue; }
+      if(idx<0||idx>=NDAYS){ calGrid+=`<td class="empty"></td>`; continue; }
       const ds=addDays(S.startDate,idx);
       const d=S.menu[ds];
       const dw=dayOfWeek(ds);
@@ -1557,15 +1609,14 @@ function exportMenuPDF(){
 
   // ── Page 2: Weekly list ────────────────────────────────────────
   let weekList='';
-  for(let w=0;w<4;w++){
-    const firstDs=addDays(S.startDate,w*7);
-    const lastDs=addDays(S.startDate,w*7+6);
+  getWeeks().forEach((wk,w)=>{
+    const firstDs=wk[0];
+    const lastDs=wk[wk.length-1];
     weekList+=`<div class="week-block">
-      <div class="week-title">Semana ${w+1} &nbsp;·&nbsp; ${fmt(firstDs)} – ${fmt(lastDs)}</div>
+      <div class="week-title">${weekName(w)} &nbsp;·&nbsp; ${fmt(firstDs)} – ${fmt(lastDs)}</div>
       <table class="week-tbl">
         <tr><th>Día</th><th>Almuerzo</th><th>Cena</th></tr>`;
-    for(let d=0;d<7;d++){
-      const ds=addDays(S.startDate,w*7+d);
+    for(const ds of wk){
       const data=S.menu[ds];
       if(!data) continue;
       const dw=dayOfWeek(ds);
@@ -1580,10 +1631,10 @@ function exportMenuPDF(){
       </tr>`;
     }
     weekList+=`</table></div>`;
-  }
+  });
 
   // ── Page 3: Market list ────────────────────────────────────────
-  const totals = computeMarketTotals();
+  const totals = getMarketItems();
   const byStore={};
   Object.entries(totals).forEach(([key,item])=>{
     const s=item.tienda||'Otro';
@@ -1592,7 +1643,6 @@ function exportMenuPDF(){
     if(!byStore[s][c])byStore[s][c]=[];
     byStore[s][c].push({key,...item});
   });
-  const STORE_PREF=['Plaza','Éxito','Santa Reyes','D1','Artesa'];
   const CAT_PREF=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Despensa'];
   const stores=[...STORE_PREF,...Object.keys(byStore).filter(s=>!STORE_PREF.includes(s))];
   function ordCats(cats){ return[...CAT_PREF,...Object.keys(cats).filter(c=>!CAT_PREF.includes(c))]; }
@@ -1616,7 +1666,7 @@ function exportMenuPDF(){
   });
 
   // ── Compose full HTML ──────────────────────────────────────────
-  const title=`Menú ${fmt(S.startDate)} – ${fmt(addDays(S.startDate,27))}`;
+  const title=`Menú ${fmt(S.startDate)} – ${fmt(periodEnd())}`;
   const pd=S.purchaseDate||S.startDate||todayStr();
 
   const html=`<!DOCTYPE html>
@@ -1887,12 +1937,12 @@ function doSwap(dish){
   }
   d.esSobra=isSobraDish(d.cena);
   d.confirmed=!!(d.confAlm&&d.confCena);
-  const idx=Math.round((new Date(_swapDs+'T12:00:00')-new Date(S.startDate+'T12:00:00'))/864e5);
-  if(S.repeatFortnight&&idx>=0&&idx<14){
+  const fm=firstMonday(S.startDate);
+  if(S.repeatFortnight&&_swapDs>=fm&&_swapDs<addDays(fm,14)){
     const tds=addDays(_swapDs,14),t=S.menu[tds];
     if(t&&t.wknd===d.wknd&&!!t.fri===!!d.fri){
       const f=_swapSlot==='alm'?'almuerzo':'cena',cf=_swapSlot==='alm'?'confAlm':'confCena';
-      if(!t[cf]){t[f]=d[f];if(_swapSlot==='alm'){t.fitAlm=d.fitAlm;if(d.esSobra&&!t.confCena){t.cena=d.cena;t.esSobra=true;}}else{t.fitCena=d.fitCena;t.esSobra=d.esSobra;}t.confirmed=!!(t.confAlm&&t.confCena);toast(`También cambiado en la semana ${Math.floor(idx/7)+3} (${fmt(tds)})`);}
+      if(!t[cf]){t[f]=d[f];if(_swapSlot==='alm'){t.fitAlm=d.fitAlm;if(d.esSobra&&!t.confCena){t.cena=d.cena;t.esSobra=true;}}else{t.fitCena=d.fitCena;t.esSobra=d.esSobra;}t.confirmed=!!(t.confAlm&&t.confCena);toast(`También cambiado en la ${weekName(weekIndexOf(tds)).toLowerCase()} (${fmt(tds)})`);}
     }
   }
   closeModal();saveState();renderAll();
@@ -1956,8 +2006,8 @@ function renderMealPrep(){
 // ═══════════════════════════════════════════════════════════════
 const MES_CORTO=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-function freshnessInfo(firstUseDate){
-  const purchDate=S.purchaseDate||S.startDate||todayStr();
+function freshnessInfo(firstUseDate,purchaseOverride){
+  const purchDate=purchaseOverride||S.purchaseDate||S.startDate||todayStr();
   const pu=new Date(purchDate+'T12:00:00');
   const fu=new Date(firstUseDate+'T12:00:00');
   const lag=Math.max(0,Math.round((fu-pu)/(1000*60*60*24)));
@@ -1980,7 +2030,7 @@ function setPurchaseDate(val){S.purchaseDate=val;saveState();renderMarket();}
 // ═══════════════════════════════════════════════════════════════
 // MARKET — proteins as "Xg × N porciones", rest in natural units
 // ═══════════════════════════════════════════════════════════════
-const STORE_PREF=['Plaza','Éxito','Santa Reyes','D1','Artesa'];
+const STORE_PREF=['Carnicería','Plaza','Éxito','Santa Reyes','D1','Artesa'];
 const CAT_PREF=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Fruta','Despensa','Congelados','Otro'];
 function orderBy(pref,keys){return [...pref.filter(k=>keys.includes(k)),...keys.filter(k=>!pref.includes(k)).sort()];}
 // totals -> [[store,[[cat,[items]]]]] (todas las tiendas/categorías, nunca descarta)
@@ -2005,7 +2055,7 @@ function getDayMeals(ds){
   return out;
 }
 
-function computeMarketTotals(subtractInv=true){
+function computeMarketTotals(subtractInv=true,range=null,ckSuffix=''){
   const totals={};
   const STORE_NORM={'Exito':'Éxito','exito':'Éxito','EXITO':'Éxito'};
   function addIng(ing,qty,unit,tipo,tienda,ds){
@@ -2013,64 +2063,94 @@ function computeMarketTotals(subtractInv=true){
     const isProt=isProteinCategory(tipo);
     if(!totals[key])totals[key]={name:ing,qty:0,unit:unit||'unid',tipo:tipo||'Otro',tienda:STORE_NORM[tienda]||tienda||'Otro',minDate:ds,portions:{},portionCount:0};
     const t=totals[key];
-    t.qty+=Number(qty)||0;
-    if(isProt){t.portionCount++;t.portions[qty]=(t.portions[qty]||0)+1;}
+    if(unit==='al gusto'&&!isProt){ /* se compra una vez: no suma */ }
+    else if(!isProt&&unit&&t.unit!==unit){t.extra=t.extra||{};t.extra[unit]=(t.extra[unit]||0)+(Number(qty)||0);}
+    else t.qty+=Number(qty)||0;
+    if(isProt){t.portionCount++;const pk=`${qty}|${unit||'g'}`;t.portions[pk]=(t.portions[pk]||0)+1;}
     if(ds<t.minDate)t.minDate=ds;
   }
-  Object.keys(S.menu).sort().forEach(ds=>getDayMeals(ds).forEach(m=>m.lines.forEach(([ing,qty,unit,tipo,tienda])=>addIng(ing,qty,unit,tipo,tienda,ds))));
-  const sd=S.startDate||todayStr();
-  FIJOS_BASE.forEach(([ing,qty,unit,tipo,tienda])=>addIng(ing,qty,unit,tipo,tienda,sd));
-  Object.values(totals).forEach(t=>{if(t.portionCount)t.portionQty=+Object.entries(t.portions).sort((a,b)=>b[1]-a[1])[0][0];});
+  const days=Object.keys(S.menu).sort().filter(ds=>!range||(ds>=range.from&&ds<=range.to));
+  days.forEach(ds=>getDayMeals(ds).forEach(m=>m.lines.forEach(([ing,qty,unit,tipo,tienda])=>addIng(ing,qty,unit,tipo,tienda,ds))));
+  const sd=range?range.from:(S.startDate||todayStr());
+  const frac=range?Math.min(1,days.length/Math.max(1,Object.keys(S.menu).length)):1;
+  FIJOS_BASE.forEach(([ing,qty,unit,tipo,tienda])=>addIng(ing,range?Math.ceil(qty*frac*10)/10:qty,unit,tipo,tienda,sd));
+  Object.values(totals).forEach(t=>{if(t.portionCount)t.portionQty=parseFloat(Object.entries(t.portions).sort((a,b)=>b[1]-a[1])[0][0]);});
 
   // Descontar lo que YA había en casa (no lo comprado en este mercado)
   if(subtractInv&&S.useInventory){
     Object.entries(totals).forEach(([key,t])=>{
       const inv=S.inventory[key];if(!inv)return;
-      const pre=Math.round(((inv.qty||0)-(S.marketBought[key]||0))*10)/10;
+      const pre=Math.round(((inv.qty||0)-boughtFor(key))*10)/10;
       if(!(pre>0))return;
       t.atHome=pre;
       if(isProteinCategory(t.tipo)){
         let left=Math.min(Math.floor(pre),t.portionCount);
-        for(const sz of Object.keys(t.portions).sort((a,b)=>a-b)){const take=Math.min(left,t.portions[sz]);t.portions[sz]-=take;left-=take;if(!t.portions[sz])delete t.portions[sz];}
+        for(const sz of Object.keys(t.portions).sort((a,b)=>parseFloat(a)-parseFloat(b))){const take=Math.min(left,t.portions[sz]);t.portions[sz]-=take;left-=take;if(!t.portions[sz])delete t.portions[sz];}
         t.portionCount=Object.values(t.portions).reduce((a,b)=>a+b,0);
-        t.qty=Object.entries(t.portions).reduce((a,[sz,n])=>a+sz*n,0);
-        if(!t.portionCount&&!S.marketChecked[key])delete totals[key];
+        t.qty=Object.entries(t.portions).reduce((a,[sz,n])=>a+parseFloat(sz)*n,0);
+        if(!t.portionCount&&!S.marketChecked[key+ckSuffix])delete totals[key];
       } else {
         t.qty=Math.max(0,t.qty-pre);
-        if(t.qty<=0.001&&!S.marketChecked[key])delete totals[key];
+        if(t.qty<=0.001&&!S.marketChecked[key+ckSuffix])delete totals[key];
       }
     });
   }
   return totals;
 }
 
+function boughtFor(base){let n=0;Object.entries(S.marketBought||{}).forEach(([k,v])=>{if(k===base||k.startsWith(base+'@'))n+=v||0;});return n;}
+const VEG_TIPOS=new Set(['Verdura','Fruta']);
+// Lista que se muestra: todo mensual, salvo verduras/frutas si se eligió una quincena.
+// Las llaves de verduras por quincena llevan sufijo @q1 / @q2 (se marcan por separado).
+function getMarketItems(){
+  const base=computeMarketTotals(true);
+  const v=S.vegView||'mes',Q=quincenas();
+  if(v==='mes'||!Q)return base;
+  const out={};
+  Object.entries(base).forEach(([k,it])=>{if(!VEG_TIPOS.has(it.tipo))out[k]=it;});
+  const vt=computeMarketTotals(true,Q[v],'@'+v);
+  Object.entries(vt).forEach(([k,it])=>{if(VEG_TIPOS.has(it.tipo))out[k+'@'+v]={...it,baseKey:k,purchase:v==='q2'?Q.q2.from:undefined};});
+  return out;
+}
+function setVegView(v){S.vegView=v;saveState();renderMarket();}
+
 // Cuánto hay en casa de lo anterior al mercado actual (para el switch)
 function preexistingStock(){
   const need=computeMarketTotals(false);let n=0;
-  Object.keys(need).forEach(k=>{const inv=S.inventory[k];if(inv&&((inv.qty||0)-(S.marketBought[k]||0))>0)n++;});
+  Object.keys(need).forEach(k=>{const inv=S.inventory[k];if(inv&&((inv.qty||0)-boughtFor(k))>0)n++;});
   return n;
 }
 
 function fmtQty(item){
+  if(item.extra){const main=item.qty>0?fmtQty({...item,extra:null}):'';const ex=Object.entries(item.extra).filter(([u])=>u!=='al gusto').map(([u,q])=>fmtQty({qty:q,unit:u,tipo:item.tipo}));return [main,...ex].filter(Boolean).join(' + ')||'al gusto';}
   if(isProteinCategory(item.tipo)&&item.portionCount>0){
-    const ps=item.portions&&Object.keys(item.portions).length?item.portions:{[item.portionQty||Math.round(item.qty/(item.portionCount||1))]:item.portionCount};
-    return Object.entries(ps).sort((a,b)=>b[1]-a[1]).map(([g,n])=>`${Math.round(g)}g × ${n}`).join(' + ')+' porc.';
+    const ps=item.portions&&Object.keys(item.portions).length?item.portions:{[`${item.portionQty||Math.round(item.qty/(item.portionCount||1))}|g`]:item.portionCount};
+    let anyG=false;
+    const parts=Object.entries(ps).sort((a,b)=>b[1]-a[1]).map(([k,n])=>{const [q,u='g']=String(k).split('|');const qn=parseFloat(q);
+      if(u==='g'){anyG=true;return `${Math.round(qn)}g × ${n}`;}
+      return `${qn===1?u:`${String(qn).replace('.',',')} ${u}`} × ${n}`;});
+    return parts.join(' + ')+(anyG&&parts.length===1?' porc.':'');
   }
+  if(item.unit==='al gusto')return 'al gusto';
   const q=item.qty;
   if(item.unit==='g'){return q>=1000?`${(Math.round(q/100)/10).toString().replace('.',',')} kg`:`${Math.round(q)} g`;}
   if(item.unit==='ml'){return q>=1000?`${(Math.round(q/100)/10).toString().replace('.',',')} L`:`${Math.round(q)} ml`;}
-  const n=Math.round(q*10)/10;
-  return`${n%1===0?n:n.toFixed(1).replace('.',',')} ${item.unit}`;
+  const n=item.unit==='unid'?Math.ceil(q-0.05):Math.round(q*10)/10;
+  const PL={taza:'tazas',pote:'potes',rama:'ramas',lata:'latas',paquete:'paquetes',bolsa:'bolsas',manojo:'manojos',botella:'botellas',trozo:'trozos',frasco:'frascos',canasta:'canastas',bloque:'bloques'};
+  const u=n>1&&PL[item.unit]?PL[item.unit]:item.unit;
+  return`${n%1===0?n:n.toFixed(1).replace('.',',')} ${u}`;
 }
 
 function renderMarket(){
   const panel=document.getElementById('panel-mercado');
   if(!Object.keys(S.menu).length){panel.innerHTML='<div class="notice">Genera el menú primero.</div>';return;}
-  const totals=computeMarketTotals();
+  const totals=getMarketItems();
   const allKeys=Object.keys(totals);
   const checked=allKeys.filter(k=>S.marketChecked[k]).length;
   const pd=S.purchaseDate||S.startDate||todayStr();
   const groups=groupMarket(totals);
+  const Q=quincenas(),vv=S.vegView||'mes';
+  const vegLbl=vv==='mes'?'mes completo':`${vv==='q1'?'1ª':'2ª'} quincena · ${fmt(Q[vv].from)}–${fmt(Q[vv].to)}`;
   const pre=preexistingStock();
   if(!S.mktCollapsed)S.mktCollapsed={};
 
@@ -2086,6 +2166,11 @@ function renderMarket(){
       <button class="btn btn-sm" onclick="clearMarket()">Desmarcar todo</button>
       <button class="btn btn-sm btn-primary" onclick="printMarket()">Imprimir</button>
     </div>
+  </div>
+  <div class="ctrl-bar" style="align-items:center;padding:.6rem 1rem;gap:.5rem">
+    <span style="font-size:.76rem;color:var(--txt2)">🥬 Verduras y frutas:</span>
+    <div class="seg">${[['mes','Mes completo'],['q1',`1ª quincena (${fmt(Q.q1.from)}–${fmt(Q.q1.to)})`],['q2',`2ª quincena (${fmt(Q.q2.from)}–${fmt(Q.q2.to)})`]].map(([k,l])=>`<button class="${vv===k?'active':''}" onclick="setVegView('${k}')">${l}</button>`).join('')}</div>
+    <span style="font-size:.68rem;color:var(--txt3)">Proteínas y despensa siempre muestran el mes completo.</span>
   </div>
   <div class="progress-bar"><div class="progress-fill" style="width:${allKeys.length?Math.round(checked/allKeys.length*100):0}%"></div></div>
   <p style="font-size:.7rem;color:var(--txt3);margin:.3rem 0 .9rem;font-family:monospace">${checked}/${allKeys.length} comprados · toca un producto al echarlo al carrito (pasa al inventario)</p>`;
@@ -2110,13 +2195,13 @@ function renderMarket(){
       const sorted=[...vis].sort((a,b)=>(a.minDate||pd).localeCompare(b.minDate||pd)||a.name.localeCompare(b.name,'es'));
       html+=`<div class="mkt-cat">
         <div class="mkt-cat-hdr" data-k="${esc(catKey)}" onclick="toggleMktSection(this.dataset.k)">
-          <span style="display:flex;align-items:center;gap:.35rem"><span class="mkt-cat-chevron">${catOpen?'▾':'▸'}</span><span class="mkt-cat-name">${esc(cat)}</span></span>
+          <span style="display:flex;align-items:center;gap:.35rem"><span class="mkt-cat-chevron">${catOpen?'▾':'▸'}</span><span class="mkt-cat-name">${esc(cat)}</span>${VEG_TIPOS.has(cat)?`<span class="badge" style="background:var(--grn-l);color:var(--grn-d);text-transform:none">${vegLbl}</span>`:''}</span>
           <span style="font-size:.65rem;color:var(--txt3);font-family:monospace">${catChecked}/${items.length}</span>
         </div>
         <div class="mkt-cat-body${catOpen?'':' collapsed'}"><div class="mkt-items">`;
       sorted.forEach(item=>{
         const chk=S.marketChecked[item.key]?'checked':'';
-        const fi=freshnessInfo(item.minDate||pd);
+        const fi=freshnessInfo(item.minDate||pd,item.purchase);
         html+=`<div class="mkt-item ${chk}" data-k="${esc(item.key)}" onclick="toggleMarketItem(this.dataset.k)">
           <div class="mkt-item-row1"><span class="mkt-item-name">${esc(item.name)}</span><span class="mkt-qty">${fmtQty(item)}</span></div>
           ${item.atHome?`<span class="fresh-badge" style="background:var(--blu-l);color:var(--blu)">ya tienes ${item.atHome}</span>`:''}
@@ -2136,17 +2221,19 @@ function renderMarket(){
 }
 
 function toggleMarketItem(key){
+  const base=key.split('@')[0],q=key.includes('@')?key.split('@')[1]:null;
   if(!S.marketChecked[key]){
-    const item=computeMarketTotals(true)[key]||computeMarketTotals(false)[key];
+    const Q=quincenas();
+    const item=q&&Q?(computeMarketTotals(true,Q[q],'@'+q)[base]||computeMarketTotals(false,Q[q])[base]):(computeMarketTotals(true)[base]||computeMarketTotals(false)[base]);
     if(!item)return;
     const isP=isProteinCategory(item.tipo);
-    const amt=isP?item.portionCount:Math.round(item.qty*10)/10;
-    const inv=S.inventory[key]||{name:item.name,qty:0,unit:isP?'porciones':item.unit,tipo:item.tipo};
+    const amt=isP?item.portionCount:(item.unit==='al gusto'?1:Math.round(item.qty*10)/10);
+    const inv=S.inventory[base]||{name:item.name,qty:0,unit:isP?'porciones':item.unit,tipo:item.tipo};
     inv.qty=Math.round(((inv.qty||0)+amt)*10)/10;inv.purchased=true;
-    S.inventory[key]=inv;S.marketBought[key]=amt;S.marketChecked[key]=true;
+    S.inventory[base]=inv;S.marketBought[key]=amt;S.marketChecked[key]=true;
   } else {
-    const amt=S.marketBought[key]||0,inv=S.inventory[key];
-    if(inv){inv.qty=Math.round(((inv.qty||0)-amt)*10)/10;if(inv.qty<=0)delete S.inventory[key];}
+    const amt=S.marketBought[key]||0,inv=S.inventory[base];
+    if(inv){inv.qty=Math.round(((inv.qty||0)-amt)*10)/10;if(inv.qty<=0)delete S.inventory[base];}
     delete S.marketBought[key];delete S.marketChecked[key];
   }
   saveState();renderMarket();renderInventory();
@@ -2155,7 +2242,7 @@ function clearMarket(){
   const keys=Object.keys(S.marketChecked).filter(k=>S.marketChecked[k]);
   if(!keys.length)return;
   if(!confirm(`¿Desmarcar los ${keys.length} productos? También se quitan del inventario.`))return;
-  keys.forEach(k=>{const amt=S.marketBought[k]||0,inv=S.inventory[k];if(inv){inv.qty=Math.round(((inv.qty||0)-amt)*10)/10;if(inv.qty<=0)delete S.inventory[k];}});
+  keys.forEach(k=>{const b=k.split('@')[0],amt=S.marketBought[k]||0,inv=S.inventory[b];if(inv){inv.qty=Math.round(((inv.qty||0)-amt)*10)/10;if(inv.qty<=0)delete S.inventory[b];}});
   S.marketChecked={};S.marketBought={};saveState();renderMarket();renderInventory();
 }
 
@@ -2168,12 +2255,12 @@ function toggleMktSection(key){
 
 function expandAllMkt(collapse){
   if(!S.mktCollapsed)S.mktCollapsed={};
-  groupMarket(computeMarketTotals()).forEach(([st,cats])=>{S.mktCollapsed[st]=collapse;cats.forEach(([c])=>S.mktCollapsed[`${st}|${c}`]=collapse);});
+  groupMarket(getMarketItems()).forEach(([st,cats])=>{S.mktCollapsed[st]=collapse;cats.forEach(([c])=>S.mktCollapsed[`${st}|${c}`]=collapse);});
   saveState();renderMarket();
 }
 
 function printMarket(){
-  const totals=computeMarketTotals();
+  const totals=getMarketItems();
   let body=`<h2>Lista de mercado — ${fmtFull(S.purchaseDate||S.startDate||todayStr())}</h2>`;
   groupMarket(totals).forEach(([store,cats])=>{
     body+=`<h3>${esc(store)}</h3>`;
@@ -2181,7 +2268,7 @@ function printMarket(){
       body+=`<p class="cat">${esc(cat)}</p><ul>`;
       items.forEach(item=>{
         const chk=S.marketChecked[item.key];
-        body+=`<li class="${chk?'done':''}">${chk?'☑':'☐'} ${esc(item.name)} <strong>${fmtQty(item)}</strong> <em>${freshnessInfo(item.minDate||S.purchaseDate).label}</em></li>`;
+        body+=`<li class="${chk?'done':''}">${chk?'☑':'☐'} ${esc(item.name)} <strong>${fmtQty(item)}</strong> <em>${freshnessInfo(item.minDate||S.purchaseDate,item.purchase).label}</em></li>`;
       });
       body+='</ul>';
     });
@@ -2272,7 +2359,7 @@ function saveAddInventory(){
 }
 
 function updateInventory(key,val){if(S.inventory[key])S.inventory[key].qty=Math.max(0,parseFloat(val)||0);saveState();}
-function removeInventory(key){delete S.inventory[key];delete S.marketBought[key];saveState();renderInventory();}
+function removeInventory(key){delete S.inventory[key];Object.keys(S.marketBought).forEach(k=>{if(k===key||k.startsWith(key+'@'))delete S.marketBought[k];});saveState();renderInventory();}
 function clearInventory(){if(confirm('¿Vaciar todo el inventario?')){S.inventory={};S.marketBought={};S.marketChecked={};saveState();renderInventory();renderMarket();}}
 
 // "Registrar cocinada" modal — pick dishes from this week, deduct ingredients
@@ -2348,7 +2435,7 @@ function inferQty(ingName,unit,tipo,recipeName){
 
 let _recFilter='all',_recQuery='',_ed=null;
 const TIPO_OPTS=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Fruta','Despensa','Congelados','Otro'];
-const UNIT_OPTS=['g','ml','unid','kg','L','taza','lata','pote','paquete','bolsa','manojo','trozo','tajadas','tallos','botella','frasco'];
+const UNIT_OPTS=['g','ml','unid','kg','L','taza','lata','latas','pote','paquete','bolsa','manojo','rama','trozo','tajadas','tallos','botella','frasco','al gusto','media pechuga en mariposa','media pechuga sin porcionar','filetes','bifes de 200 g','porciones de lomo en mariposa','cañón de lomo de 500 g'];
 function dishPools(name){return CATS.filter(c=>(S.platos[c]||[]).includes(name)||(S.platosFit[c]||[]).includes(name));}
 function allDishNames(){
   const set=new Set([...Object.keys(RECETAS_BASE),...Object.keys(S.recetas)]);
@@ -2415,7 +2502,7 @@ function renderRecipeEditor(){
       <input type="text" list="re-ings" placeholder="Ingrediente" value="${esc(g.ing)}" oninput="_ed.ings[${i}].ing=this.value;updateHint(${i})" onchange="autofillIng(${i})">
       <input type="number" id="ri-${i}-qty" min="0" step="any" placeholder="${inf?inf.qty:'cant.'}" value="${esc(g.qty)}" oninput="_ed.ings[${i}].qty=this.value;updateHint(${i})">
       <select id="ri-${i}-unit" onchange="_ed.ings[${i}].unit=this.value">${opts(UNIT_OPTS,g.unit)}</select>
-      <select id="ri-${i}-tipo" class="ing-tipo" onchange="_ed.ings[${i}].tipo=this.value;updateHint(${i})">${opts(TIPO_OPTS,g.tipo)}</select>
+      <select id="ri-${i}-tipo" class="ing-tipo" onchange="_ed.ings[${i}].tipo=this.value;if(STORE_BY_TIPO[this.value]){_ed.ings[${i}].tienda=STORE_BY_TIPO[this.value];const t=document.getElementById('ri-${i}-tienda');if(t){if(![...t.options].some(o=>o.value===STORE_BY_TIPO[this.value]))t.add(new Option(STORE_BY_TIPO[this.value]));t.value=STORE_BY_TIPO[this.value];}}updateHint(${i})">${opts(TIPO_OPTS,g.tipo)}</select>
       <select id="ri-${i}-tienda" class="ing-tienda" onchange="_ed.ings[${i}].tienda=this.value">${opts(stores,g.tienda)}</select>
       <button class="btn btn-sm btn-danger ing-del" onclick="_ed.ings.splice(${i},1);if(!_ed.ings.length)_ed.ings.push(blankIng());renderRecipeEditor()" title="Quitar">×</button>
     </div><div class="ing-hint" id="ri-${i}-hint">${inf?`sugerido: ${inf.qty} ${inf.unit}`:''}</div>`;
@@ -2506,8 +2593,7 @@ loadState();
 (function jumpToToday(){
   const t=todayStr();
   if(S.startDate&&Object.keys(S.menu).length){
-    const diff=Math.round((new Date(t+'T12:00:00')-new Date(S.startDate+'T12:00:00'))/864e5);
-    if(diff>=0&&diff<28)S.currentWeek=Math.floor(diff/7);
+    const wi=weekIndexOf(t);if(wi>=0)S.currentWeek=wi;
   }
 })();
 renderAll();

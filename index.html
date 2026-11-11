@@ -761,6 +761,7 @@ var S={
   marketBought:{},       // key -> qty agregada al inventario al marcar en el mercado
   useInventory:false,    // descontar lo que ya hay en casa
   hideChecked:false,
+  prepMode:'lun',
   repeatFortnight:false,
   vegView:'mes',
   mktCollapsed:{},
@@ -1024,6 +1025,7 @@ function openOptionsModal(){
   openModal(`<h2>Opciones</h2>
   <div class="opt-list">
     <button class="opt-item" onclick="closeModal();exportMenuPDF()">📄<span>Exportar PDF<small>Calendario, menú semanal y lista de mercado</small></span></button>
+    <button class="opt-item" onclick="closeModal();shareMenuPdf()">📲<span>Enviar PDF por WhatsApp<small>En el celular se abre el menú de compartir</small></span></button>
     <button class="opt-item" onclick="closeModal();openSyncModal()">☁<span>Sincronización entre dispositivos<small>${cfg?.gistId?'Conectada':'Sin configurar'}</small></span></button>
     ${cfg?.gistId?`<button class="opt-item" onclick="syncLoadNow()">⟳<span>Traer cambios de la nube ahora</span></button>`:''}
     <button class="opt-item" onclick="closeModal();exportMenu()">↓<span>Descargar respaldo (.json)</span></button>
@@ -1481,6 +1483,7 @@ function renderResumen(){
     </div>
     <div style="display:flex;gap:.4rem">
       <button class="btn btn-sm" onclick="exportMenuPDF()">📄 Exportar PDF</button>
+      <button class="btn btn-sm" onclick="shareMenuPdf()">📲 PDF por WhatsApp</button>
       <button class="btn btn-sm btn-primary" onclick="switchTab('mercado')">Ver mercado →</button>
     </div>
   </div>`;
@@ -1582,7 +1585,7 @@ function switchTab(name){
   window.scrollTo({top:0});
 }
 
-function exportMenuPDF(){
+function exportMenuPDF(mode){
   if(!Object.keys(S.menu).length){ alert('Genera el menú primero.'); return; }
 
   const hols = getHols();
@@ -1778,6 +1781,84 @@ h1{font-size:15px;font-weight:600;margin-bottom:4px}
 }
 
 function printResumen(){ exportMenuPDF(); }
+
+// ── Enviar el PDF por WhatsApp ──
+// Arma un PDF de texto (jsPDF) y usa el menú "Compartir" del teléfono/PC.
+// Si el dispositivo no permite compartir archivos, lo descarga y abre WhatsApp para adjuntarlo.
+let _pdfLibs=null;
+function loadScript(src){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=()=>rej(new Error('Sin conexión para generar el PDF'));document.head.appendChild(sc);});}
+function loadPdfLibs(){
+  if(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable)return Promise.resolve();
+  if(!_pdfLibs)_pdfLibs=loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+    .then(()=>loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'))
+    .catch(e=>{_pdfLibs=null;throw e;});
+  return _pdfLibs;
+}
+function pdfSafe(t){return String(t??'').replace(/[^\x00-\xFF–—·×‘’“”…•€]/gu,'').trim();}
+function buildMenuPdf(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
+  const GREEN=[15,110,86],LIGHT=[240,239,233],W=doc.internal.pageSize.getWidth();
+  const hols=getHols(),title=`Menú ${fmt(S.startDate)} – ${fmt(periodEnd())}`;
+  const header=(t,sub)=>{doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(26,26,24);doc.text(pdfSafe(t),12,15);
+    if(sub){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(140);doc.text(pdfSafe(sub),12,20.5);}};
+  // 1) Calendario (lun–dom)
+  header(title,'Calendario del menú');
+  const dates=menuDates(),startDow=(dayOfWeek(dates[0])+6)%7,cells=[];
+  for(let i=0;i<startDow;i++)cells.push(null);dates.forEach(d=>cells.push(d));while(cells.length%7)cells.push(null);
+  const body=[];for(let r=0;r<cells.length;r+=7)body.push(cells.slice(r,r+7).map(ds=>{if(!ds)return'';const m=S.menu[ds];
+    return pdfSafe(`${parseInt(ds.slice(8))}${m.holiday?' · '+hols.name(ds):''}\nAlm: ${m.almuerzo}\nCena: ${m.cena}`);}));
+  doc.autoTable({startY:24,head:[['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']],body,theme:'grid',
+    styles:{fontSize:6.4,cellPadding:1.3,valign:'top',lineColor:[220,220,215]},bodyStyles:{minCellHeight:26},
+    headStyles:{fillColor:GREEN,halign:'center',fontSize:8},margin:{left:8,right:8},
+    didParseCell:d=>{if(d.section!=='body')return;const ds=cells[d.row.index*7+d.column.index];if(!ds){d.cell.styles.fillColor=[250,250,248];return;}
+      const m=S.menu[ds];if(m.holiday)d.cell.styles.fillColor=[255,248,230];else if(m.wknd)d.cell.styles.fillColor=[236,248,242];}});
+  // 2) Semana a semana
+  doc.addPage();header(title,'Menú semana a semana');let y=25;
+  getWeeks().forEach((wk,w)=>{
+    if(y+14+wk.length*7>282){doc.addPage();y=15;}
+    doc.autoTable({startY:y,head:[[{content:`${weekName(w)} · ${fmt(wk[0])} – ${fmt(wk[wk.length-1])}`,colSpan:3}],['Día','Almuerzo','Cena']],
+      body:wk.map(ds=>{const m=S.menu[ds];return[pdfSafe(`${DAY_NAMES_SHORT[dayOfWeek(ds)]} ${fmt(ds)}${m.holiday?' ('+hols.name(ds)+')':''}`),pdfSafe(m.almuerzo),pdfSafe(m.cena)];}),
+      theme:'striped',styles:{fontSize:8,cellPadding:1.6},headStyles:{fillColor:GREEN},columnStyles:{0:{cellWidth:26}},
+      margin:{left:12,right:12},rowPageBreak:'avoid',pageBreak:'auto'});
+    y=doc.lastAutoTable.finalY+6;
+  });
+  // 3) Lista de mercado (verduras según la vista elegida)
+  doc.addPage();const Q=quincenas(),vv=S.vegView||'mes';
+  header('Lista de mercado',`Compra: ${fmtFull(S.purchaseDate||S.startDate)} · Verduras y frutas: ${vv==='mes'?'mes completo':(vv==='q1'?'1ª':'2ª')+' quincena ('+fmt(Q[vv].from)+'–'+fmt(Q[vv].to)+')'}`);
+  y=25;
+  groupMarket(getMarketItems()).forEach(([store,cats])=>{
+    const rows=[];cats.forEach(([cat,items])=>{rows.push([{content:pdfSafe(cat).toUpperCase(),colSpan:3,styles:{fillColor:LIGHT,fontStyle:'bold',fontSize:7,textColor:[110,110,105]}}]);
+      items.forEach(it=>rows.push([(S.marketChecked[it.key]?'[x] ':'[  ] ')+pdfSafe(it.name),pdfSafe(fmtQty(it)),pdfSafe(freshnessInfo(it.minDate||S.purchaseDate,it.purchase).label)]));});
+    doc.autoTable({startY:y,head:[[{content:pdfSafe(store),colSpan:3}]],body:rows,theme:'plain',styles:{fontSize:8,cellPadding:1.2},
+      headStyles:{fillColor:GREEN,textColor:255,fontSize:9.5},columnStyles:{0:{cellWidth:62},1:{cellWidth:62,textColor:GREEN},2:{textColor:[130,130,125],fontSize:7}},margin:{left:12,right:12}});
+    y=doc.lastAutoTable.finalY+5;
+  });
+  const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(160);doc.text(`${i} / ${n}`,W/2,290,{align:'center'});}
+  return doc;
+}
+async function shareMenuPdf(){
+  if(!Object.keys(S.menu).length){toast('Genera el menú primero');return;}
+  toast('Generando PDF…',6000);
+  try{
+    await loadPdfLibs();
+    const filename=`Menu_${S.startDate}_${periodEnd()}.pdf`;
+    const blob=buildMenuPdf().output('blob');
+    const file=new File([blob],filename,{type:'application/pdf'});
+    const text=`Menú ${fmt(S.startDate)} – ${fmt(periodEnd())}`;
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:text,text});}
+      catch(e){if(e.name!=='AbortError')throw e;}
+    } else {
+      const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),2000);
+      openModal(`<h2>📲 PDF listo</h2>
+        <p style="font-size:.82rem;color:var(--txt2);line-height:1.6">Este navegador no permite enviar archivos directo a WhatsApp, así que el PDF <strong>${esc(filename)}</strong> se descargó.<br>Abre WhatsApp, elige el chat y adjúntalo con el clip 📎.</p>
+        <div class="modal-footer"><button class="btn btn-sm" onclick="closeModal()">Cerrar</button>
+        <button class="btn btn-sm btn-primary" onclick="window.open('https://web.whatsapp.com/','_blank');closeModal()">Abrir WhatsApp Web</button></div>`);
+    }
+  }catch(e){toast('No se pudo generar el PDF: '+e.message,5000);console.error(e);}
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Pool global para el swap activo (evita problemas de escapado en onclick)
 let _swapPool=[];
@@ -1964,14 +2045,28 @@ function closeModalOutside(e){if(e.target===document.getElementById('modal-overl
 // MEAL PREP — dish count per protein per Sunday
 // ═══════════════════════════════════════════════════════════════
 function prepSundayFor(ds){const dw=dayOfWeek(ds);return addDays(ds,-(dw===0?7:dw));}
+// Bloques de meal prep: 'lun' = lun–dom (prep el domingo), 'jue' = jue–mié (prep el miércoles),
+// 'ambos' = lun–mié y jue–dom (prep domingo y miércoles)
+function prepBlockStart(ds){
+  const m=S.prepMode||'lun',dw=dayOfWeek(ds);
+  if(m==='jue')return addDays(ds,-((dw+3)%7));
+  if(m==='ambos')return (dw>=1&&dw<=3)?addDays(ds,-(dw-1)):addDays(ds,-((dw+3)%7));
+  return addDays(ds,-((dw+6)%7));
+}
+function setPrepMode(v){S.prepMode=v;saveState();renderMealPrep();}
 function renderMealPrep(){
   const panel=document.getElementById('panel-meal-prep');
   if(!Object.keys(S.menu).length){panel.innerHTML='<div class="notice">Genera el menú primero.</div>';return;}
   const today=todayStr();
   const groups={};
-  Object.keys(S.menu).sort().forEach(ds=>{(groups[prepSundayFor(ds)]=groups[prepSundayFor(ds)]||[]).push(ds);});
-  let html=`<div class="notice">🧊 Cada domingo saca del congelador estas porciones para la semana (lunes a domingo). Cada porción = un plato. Las proteínas repetidas se cocinan juntas y se separan por salsa o acompañamiento.</div>`;
-  Object.entries(groups).forEach(([sun,days])=>{
+  Object.keys(S.menu).sort().forEach(ds=>{const k=addDays(prepBlockStart(ds),-1);(groups[k]=groups[k]||[]).push(ds);});
+  const pm=S.prepMode||'lun';
+  let html=`<div class="ctrl-bar" style="align-items:center;padding:.6rem 1rem;gap:.5rem">
+    <span style="font-size:.76rem;color:var(--txt2)">Bloques de meal prep:</span>
+    <div class="seg">${[['lun','Lunes a domingo'],['jue','Jueves a miércoles'],['ambos','Lun–mié y jue–dom']].map(([k,l])=>`<button class="${pm===k?'active':''}" onclick="setPrepMode('${k}')">${l}</button>`).join('')}</div>
+  </div>
+  <div class="notice">🧊 El día anterior a cada bloque saca del congelador estas porciones. Cada porción = un plato. Las proteínas repetidas se cocinan juntas y se separan por salsa o acompañamiento.</div>`;
+  Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([sun,days])=>{
     const prot={};
     days.forEach(ds=>getDayMeals(ds).forEach(m=>{
       const seen=new Set();
@@ -1988,8 +2083,8 @@ function renderMealPrep(){
     const total=entries.reduce((a,p)=>a+p.dishes.length,0);
     html+=`<div class="prep-card" style="${isPast?'opacity:.55;':''}${isCurrent?'border:1.5px solid var(--grn);':''}">
       <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.3rem;margin-bottom:.6rem">
-        <div><strong style="font-size:.9rem">Domingo ${fmt(sun)}</strong>${sun<S.startDate?' <span style="font-size:.7rem;color:var(--txt3)">(antes de empezar)</span>':''}
-        <div style="font-size:.72rem;color:var(--txt3)">Para ${fmt(days[0])} – ${fmt(last)}${isCurrent?' · <span style="color:var(--grn-d)">semana actual</span>':''}</div></div>
+        <div><strong style="font-size:.9rem">${DAY_NAMES[dayOfWeek(addDays(days[0],-1))]} ${fmt(addDays(days[0],-1))}</strong>
+        <div style="font-size:.72rem;color:var(--txt3)">Para ${DAY_NAMES_SHORT[dayOfWeek(days[0])].toLowerCase()} ${fmt(days[0])} – ${DAY_NAMES_SHORT[dayOfWeek(last)].toLowerCase()} ${fmt(last)}${isCurrent?' · <span style="color:var(--grn-d)">semana actual</span>':''}</div></div>
         <span class="prep-qty-tag" style="margin-left:0">${total} porciones</span>
       </div>`;
     if(!entries.length){html+=`<p style="font-size:.8rem;color:var(--txt3)">Sin proteínas esta semana.</p></div>`;return;}

@@ -2199,6 +2199,8 @@ function computeMarketTotals(subtractInv=true,range=null,ckSuffix=''){
   if(subtractInv&&S.useInventory){
     Object.entries(totals).forEach(([key,t])=>{
       const inv=S.inventory[key];if(!inv)return;
+      // solo descuenta si la unidad coincide (proteína siempre en porciones)
+      if(!isProteinCategory(t.tipo)&&inv.unit&&t.unit&&inv.unit!==t.unit&&inv.unit!=='al gusto')return;
       const pre=Math.round(((inv.qty||0)-boughtFor(key))*10)/10;
       if(!(pre>0))return;
       t.atHome=pre;
@@ -2447,6 +2449,7 @@ function renderInventory(){
     </div>
     <div style="display:flex;gap:.4rem;flex-wrap:wrap">
       <button class="btn btn-sm btn-warn" onclick="openCookedModal()">🍳 Registrar lo cocinado${pend?` (${pend})`:''}</button>
+      <button class="btn btn-sm btn-primary" onclick="refreshMarketFromInventory()">🔄 Actualizar lista de mercado</button>
       <button class="btn btn-sm" onclick="openAddInventory()">+ Agregar</button>
       ${Object.keys(inv).length?`<button class="btn btn-sm" onclick="clearInventory()">Vaciar</button>`:''}
     </div>
@@ -2479,7 +2482,19 @@ function renderInventory(){
   html+=`</tbody></table>`;
   panel.innerHTML=html;
 }
-function stepInventory(key,d){const it=S.inventory[key];if(!it)return;it.qty=Math.max(0,(it.qty||0)+d);saveState();renderInventory();}
+function stepInventory(key,d){const it=S.inventory[key];if(!it)return;it.qty=Math.max(0,(it.qty||0)+d);saveState();renderInventory();renderMarket();}
+// Recalcula la lista de mercado como "lo que necesita el menú − lo que hay en casa"
+function refreshMarketFromInventory(){
+  if(!Object.keys(S.menu).length){toast('Genera el menú primero');return;}
+  if(Object.keys(S.marketChecked||{}).length&&!confirm('Se va a recalcular la lista con lo que tienes en el inventario.\n\nLo que habías marcado como comprado se desmarca, porque ya cuenta como inventario. ¿Continuar?'))return;
+  const before=Object.keys(computeMarketTotals(false)).length;
+  S.marketChecked={};S.marketBought={};S.useInventory=true;
+  const after=computeMarketTotals(true);
+  const n=Object.keys(after).length,covered=before-n;
+  const partial=Object.values(after).filter(t=>t.atHome).length;
+  saveState();renderAll();switchTab('mercado');
+  toast(`Lista actualizada: ${n} productos por comprar · ${covered} ya cubiertos por el inventario${partial?` · ${partial} con descuento parcial`:''}`,5000);
+}
 function openAddInventory(){
   openModal(`<h2>Agregar al inventario</h2>
     <p style="font-size:.78rem;color:var(--txt2);margin-bottom:.8rem">Para lo que ya tienes en casa (por ejemplo, proteína que quedó en el congelador).</p>
@@ -2507,7 +2522,7 @@ function saveAddInventory(){
   S.inventory[key]=it;closeModal();saveState();renderInventory();renderMarket();toast(`${it.name} agregado`);
 }
 
-function updateInventory(key,val){if(S.inventory[key])S.inventory[key].qty=Math.max(0,parseFloat(val)||0);saveState();}
+function updateInventory(key,val){if(S.inventory[key])S.inventory[key].qty=Math.max(0,parseFloat(val)||0);saveState();renderMarket();}
 function removeInventory(key){delete S.inventory[key];Object.keys(S.marketBought).forEach(k=>{if(k===key||k.startsWith(key+'@'))delete S.marketBought[k];});saveState();renderInventory();}
 function clearInventory(){if(confirm('¿Vaciar todo el inventario?')){S.inventory={};S.marketBought={};S.marketChecked={};saveState();renderInventory();renderMarket();}}
 

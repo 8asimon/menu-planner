@@ -720,6 +720,8 @@ function cremaToGrams(name,lines){
   });
 }
 Object.entries(RECETAS_BASE).forEach(([n,r])=>cremaToGrams(n,r));
+// Contramuslos: 4 por receta
+Object.values(RECETAS_BASE).forEach(r=>r.forEach(l=>{if(String(l[0]).toLowerCase()==='contramuslo pollo'){l[1]=4;l[2]='contramuslos';}}));
 
 // Tienda por categoría: pollo, res, cerdo y huevos se compran en la carnicería
 const STORE_BY_TIPO={'Pollo':'Carnicería','Carne Res':'Carnicería','Carne Cerdo':'Carnicería','Huevos':'Carnicería'};
@@ -2435,7 +2437,7 @@ function inferQty(ingName,unit,tipo,recipeName){
 
 let _recFilter='all',_recQuery='',_ed=null;
 const TIPO_OPTS=['Pollo','Carne Cerdo','Carne Res','Pescado','Huevos','Lácteos','Carnes frías','Verdura','Fruta','Despensa','Congelados','Otro'];
-const UNIT_OPTS=['g','ml','unid','kg','L','taza','lata','latas','pote','paquete','bolsa','manojo','rama','trozo','tajadas','tallos','botella','frasco','al gusto','media pechuga en mariposa','media pechuga sin porcionar','filetes','bifes de 200 g','porciones de lomo en mariposa','cañón de lomo de 500 g'];
+const UNIT_OPTS=['g','ml','unid','kg','L','taza','lata','latas','pote','paquete','bolsa','manojo','rama','trozo','tajadas','tallos','botella','frasco','al gusto','media pechuga en mariposa','media pechuga sin porcionar','filetes','contramuslos','bifes de 200 g','porciones de lomo en mariposa','cañón de lomo de 500 g'];
 function dishPools(name){return CATS.filter(c=>(S.platos[c]||[]).includes(name)||(S.platosFit[c]||[]).includes(name));}
 function allDishNames(){
   const set=new Set([...Object.keys(RECETAS_BASE),...Object.keys(S.recetas)]);
